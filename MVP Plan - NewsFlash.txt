@@ -1,0 +1,563 @@
+﻿Here’s a detailed MVP instruction plan that keeps the idea tight and avoids feature creep.
+Core MVP goal
+Build a product that:
+* watches a curated set of high-signal tech/startup Twitter/X accounts
+* extracts the most important posts from the last 24 hours
+* ranks them by likely impact
+* turns them into very short summaries
+* pushes them in a low-effort, impossible-to-ignore format
+The key is not “best tech news app.”
+The key is:
+“I don’t need to open anything. The important tech news just appears.”
+________________
+
+
+1. Define the exact MVP in one sentence
+Your MVP should be:
+A browser extension or simple web widget that displays 3–7 ranked, one-line daily tech/startup updates sourced from high-signal Twitter/X accounts.
+That’s it.
+Not a social platform.
+Not full personalization.
+Not AI video generation.
+Not TikTok automation.
+Not a giant dashboard.
+Just:
+* input: tweets from selected accounts
+* processing: rank + summarize
+* output: tiny visual headline bar/card
+________________
+
+
+2. Pick one delivery format only
+You mentioned several:
+* browser extension bottom bar
+* phone widget
+* site
+* Instagram/TikTok reel
+For MVP, choose one.
+Best MVP choice: browser extension
+Why:
+* easiest to put “in front of their face”
+* no need to convince users to visit a website
+* simpler than mobile widget infra
+* much simpler than auto-generating short-form video content
+* matches your core thesis: zero effort consumption
+What the extension should do
+Once per day, or when browser opens:
+* show a small bottom bar or corner card
+* rotate through 3–7 headlines
+* each headline = one line
+* optional tiny “expand” for a 2-sentence summary
+That is enough.
+________________
+
+
+3. Define the target user very narrowly
+Do not build for “everyone who likes tech.”
+Build for one specific user:
+MVP user
+startup/tech-curious students, builders, founders, and operators who care about what major tech leaders and companies are signaling
+Examples:
+* college builders
+* indie hackers
+* startup interns
+* founders
+* tech Twitter lurkers
+* AI/product people
+What they actually want
+Not “more news.”
+They want:
+* what matters today
+* from the people who matter
+* in under 20 seconds
+* without opening Twitter/X or email
+That should shape every product choice.
+________________
+
+
+4. Define the source universe
+This is the most important part.
+If the sources are bad, the product is bad.
+Do not let users follow everyone at first.
+Start with a curated whitelist of accounts.
+Create 3 source tiers
+Tier 1: mega-signal individuals
+These are people whose posts themselves are news.
+Examples of categories:
+* major AI CEOs/founders
+* major infra/founding figures
+* important investors
+* major product/company leaders
+Tier 2: high-signal company/org accounts
+Examples:
+* OpenAI-type orgs
+* major AI labs
+* major startups
+* large tech company official accounts
+Tier 3: interpreters / aggregators
+Examples:
+* smart journalists
+* respected analysts
+* technical commentators
+* startup ecosystem people
+For MVP, only use 30–75 accounts total.
+That is enough.
+Rule
+Prefer:
+* original posts
+* announcements
+* product launches
+* deals/partnerships
+* funding/newsworthy claims
+* policy/regulatory implications
+* technical breakthroughs
+* hiring/open-source releases that imply momentum
+Avoid:
+* memes
+* low-signal engagement bait
+* vague inspirational posts
+* personal life updates
+* random replies unless they clearly contain news
+________________
+
+
+5. Define what counts as “important”
+You already identified the hard part:
+users don’t know what to prioritize.
+So your product must act like an editor.
+Create a simple impact score
+For MVP, score each candidate post on 4 factors:
+A. Source importance
+How important is the poster?
+Example scale:
+* 5 = category-defining leader/company
+* 4 = major leader/company
+* 3 = respected insider or large startup
+* 2 = relevant but secondary voice
+* 1 = everyone else
+B. Event importance
+What kind of thing is being said?
+Higher score for:
+* launch
+* partnership
+* funding
+* acquisition
+* policy/regulation
+* major hiring signal
+* product release
+* infrastructure/capability jump
+* pricing/business model change
+* public stance that shifts industry narrative
+Lower score for:
+* commentary
+* jokes
+* general takes
+* motivational posts
+C. Engagement velocity
+How fast is it spreading?
+Use:
+* likes
+* reposts
+* replies
+* maybe views if available
+Not raw totals only.
+Better:
+* engagement relative to account size
+* engagement within first X hours
+D. Cross-source confirmation
+If multiple high-signal accounts talk about the same thing, it matters more.
+________________
+
+
+6. Use a dead-simple ranking formula
+Do not overbuild ML first.
+Use a heuristic score like:
+Total Score = (Source Weight × 0.35) + (Event Type Weight × 0.35) + (Engagement Velocity × 0.2) + (Multi-source Confirmation × 0.1)
+Then rank top items.
+Add one important rule:
+Cluster duplicates.
+If 8 people are talking about the same launch, do not show 8 headlines.
+Show:
+* one main headline
+* 1–2 source references behind it
+That makes the product feel editorial instead of noisy.
+________________
+
+
+7. Define the exact content output format
+Keep output extremely compressed.
+MVP content unit
+For each story, generate:
+Format 1: one-line headline
+Example structure:
+* OpenAI signals new defense partnership focus
+* Major AI chip startup raises large new round
+* Big tech leader hints at new hardware push
+Format 2: tiny supporting detail
+One short line max:
+* “Discussed today across top AI/startup accounts.”
+* “Driven by CEO statement + company follow-up post.”
+* “High engagement from investors and builders.”
+Format 3: source chips
+Tiny avatars or names:
+* Sam Altman
+* company account
+* one journalist/interpreter
+That’s enough.
+Avoid in MVP
+* long article summaries
+* giant carousels
+* comment sections
+* sentiment analysis dashboards
+* timeline visualizations
+* audio readouts
+* video generation
+________________
+
+
+8. Choose the UX pattern
+Since your core insight is “people don’t open things,” the UX is the product.
+Best MVP UX
+A small bottom bar or floating card:
+* appears automatically once a day
+* can cycle through 3–7 top stories
+* each story visible for 5–8 seconds
+* minimal motion
+* aesthetically clean
+* one-click dismiss for the day
+Why this works
+It is:
+* in front of the face
+* low effort
+* not as annoying as a popup
+* lighter than email
+* easier than asking user to visit a site
+Core UX requirements
+* zero setup after install
+* no feed overload
+* no tiny unreadable text
+* no aggressive interruption
+* no forced clicking
+The user should get value even if they never interact.
+________________
+
+
+9. Define the MVP feature set
+Must-have
+* curated account list
+* daily tweet ingestion
+* ranking logic
+* duplicate clustering
+* short AI summary generation
+* browser extension UI
+* one daily delivery moment
+* archive of “today’s top 5” on a simple webpage
+Nice but maybe still okay if very light
+* “Why this matters” tooltip
+* user can choose AI / startup / general tech mode
+* mute the bar for today
+Absolutely not for MVP
+* fully personalized feeds
+* video/reels generation
+* mobile widget first
+* social sharing system
+* comments
+* user-submitted sources
+* 24/7 live stream of headlines
+* notifications every hour
+* deep analytics
+* full article generation
+* recommendation engine
+* cross-platform creator business
+________________
+
+
+10. Suggested MVP system architecture
+Keep this stupid simple.
+Pipeline
+Step 1: Fetch posts
+Every few hours or once daily:
+* pull posts from curated accounts
+* limit to posts from last 24 hours
+Step 2: Filter candidate posts
+Remove:
+* pure replies
+* low-engagement noise
+* obvious memes/jokes unless massively important
+* duplicates
+* non-news chatter
+Step 3: Score posts
+Apply heuristic importance score.
+Step 4: Cluster related posts
+Group together posts about the same event/topic.
+Step 5: Summarize clusters
+Use LLM to generate:
+* one-line headline
+* one-line supporting explanation
+Step 6: Store final top stories
+Save top 3–7 for the day.
+Step 7: Deliver
+Extension reads today’s stories from backend and displays them.
+________________
+
+
+11. The fastest technical build path
+Frontend
+* browser extension first
+* optional tiny landing page or dashboard
+Backend
+* simple job runner / cron
+* database for posts + scored stories
+* summarization layer
+* API endpoint serving today’s ranked stories
+Suggested stack philosophy
+Pick whatever is fastest for you.
+The stack matters less than:
+* reliable ingestion
+* clean ranking
+* good UX
+A simple version could be:
+* extension frontend
+* lightweight backend
+* cron jobs
+* database
+* LLM summarizer
+Do not optimize infrastructure early.
+________________
+
+
+12. Biggest product risk: Twitter/X data access
+This is likely your main real-world constraint.
+You need to think about this immediately.
+MVP instruction
+Before building the full product, validate:
+* can you legally and technically access the posts you need?
+* can you do it affordably?
+* can you do it consistently?
+If Twitter/X API is painful or expensive, your contingency options are:
+* start with a smaller source set
+* use manual/semimanual editorial testing first
+* support multiple public-source inputs later, not only X
+But for product thinking, your user value prop is still strong.
+________________
+
+
+13. Build manual before automated
+Before writing much code, simulate the product manually for 3–5 days.
+Manual test process
+Each day:
+* review posts from 30–50 target accounts
+* pick top 5 stories
+* write one-line summaries
+* mock them in a bottom-bar design or notion page
+* show to 5–10 target users
+Ask:
+* did this save you time?
+* did you learn anything meaningful?
+* was the ranking good?
+* was it too noisy?
+* would you install this?
+* would you keep it on?
+This manual phase will teach you:
+* what actually counts as signal
+* how many headlines is too many
+* what summary length works
+* whether users prefer founders, AI, startup funding, or product launches
+This is way more valuable than prematurely coding everything.
+________________
+
+
+14. User testing questions you should ask
+When testing mocks or prototypes, ask:
+1. If this appeared once per day in your browser, would you keep it on?
+2. Was there too much text?
+3. Which headline did you care about most?
+4. Which headline felt irrelevant?
+5. Did the source names make you trust it more?
+6. Would you want 3 headlines, 5, or 10?
+7. Did this feel less annoying than email?
+8. Would you rather see this morning, noon, or evening?
+9. Does “from top tech voices” feel valuable enough by itself?
+10. What would make this indispensable?
+You want evidence for:
+* retention
+* trust
+* low annoyance
+* perceived time saved
+________________
+
+
+15. The best version of the product positioning
+You need a crisp sentence.
+Positioning option
+Tech news from the people shaping it — delivered passively in under 20 seconds a day.
+Another
+A passive tech-Twitter digest that surfaces only the day’s highest-signal updates.
+Another
+The most important things tech leaders posted today, without opening X.
+This matters because it tells users exactly why this is better than:
+* email newsletters
+* Twitter
+* generic tech news apps
+________________
+
+
+16. First milestone roadmap
+Phase 0: validate concept
+* define target user
+* make source list
+* manually curate 5 days of digests
+* test with real people
+Phase 1: build backend prototype
+* ingest post data
+* assign source weights
+* basic filtering
+* rank top posts
+* generate summaries
+Phase 2: build simple UI
+* extension with bottom bar/card
+* show top 5 stories
+* allow dismiss/minimize
+* link to full source only if clicked
+Phase 3: improve ranking quality
+* duplicate clustering
+* better importance categories
+* reduce fluff
+* maybe add topic modes
+Phase 4: retention test
+* does anyone keep it installed for 7+ days?
+* do they feel more informed?
+* do they mention it to friends?
+That is enough for MVP.
+________________
+
+
+17. Metrics that matter for MVP
+Do not obsess over vanity metrics first.
+Track:
+Product quality metrics
+* percentage of shown stories users say were actually relevant
+* percentage of duplicates/noise
+* average headline open/dismiss rate
+* daily active users retaining after 7 days
+Behavioral success metrics
+* “I learned something useful today”
+* “I didn’t have to open X”
+* “This took <20 seconds”
+* “I would keep this installed”
+Red flag metrics
+* muted quickly
+* ignored entirely
+* summaries feel obvious
+* users say “I already saw all this”
+* users say “this is just Twitter but worse”
+________________
+
+
+18. Biggest ways this can fail
+1. Too much noise
+Fix by:
+* shrinking source universe
+* showing fewer headlines
+* harder filtering
+2. Bad ranking
+Fix by:
+* manual source tiers
+* event-type weighting
+* duplicate clustering
+* human review during early days
+3. Too disruptive
+Fix by:
+* once daily only
+* subtle animation
+* easy dismiss
+* do not autoplay constantly
+4. Too little value
+Fix by:
+* stronger source curation
+* only highest-signal items
+* sharper summaries
+* focus on “people shaping tech,” not general tech news
+5. API/data issues
+Fix by:
+* validate data access early
+* keep source list small
+* manually assist the pipeline early if needed
+________________
+
+
+19. Things to explicitly say no to
+To prevent feature creep, write this down now:
+This MVP will not:
+* be a full news platform
+* personalize deeply
+* summarize the whole internet
+* cover every industry
+* replace Twitter/X
+* generate video content
+* become a social app
+* send many notifications
+* include long-form analysis
+It only does one thing:
+surface the most important tech/startup signals from important voices, passively.
+________________
+
+
+20. The cleanest MVP spec
+If I were forcing this into the simplest possible version, I’d make it:
+MVP spec
+* curated list of 50 high-signal tech/startup Twitter/X accounts
+* once per day, analyze last 24h of posts
+* rank top 5 stories by source importance + event type + engagement
+* cluster duplicates into one story
+* generate a one-line summary for each
+* show them in a clean browser extension bottom bar
+* user can dismiss, pause, or click to expand one story
+* optional simple “today’s digest” webpage archive
+That is enough to test the actual thesis.
+________________
+
+
+21. What you should do this week
+Day 1
+Write:
+* target user
+* one-sentence value prop
+* “what this is / what this is not”
+Day 2
+Create:
+* 30–50 account whitelist
+* source tiers
+* event-type importance list
+Day 3
+Run manual curation on one day of posts.
+Day 4
+Repeat manual curation and refine ranking rules.
+Day 5
+Make a lo-fi mock of the extension UI.
+Day 6
+Show it to 5–10 users and ask the testing questions above.
+Day 7
+Decide:
+* is the problem real?
+* is browser extension the right wedge?
+* which part is hardest: source access, ranking, or UX?
+Only then start building.
+________________
+
+
+Final recommendation
+Your best move is to position this as:
+“passive, high-signal tech news from Twitter/X, distilled into a tiny daily visual digest.”
+Not:
+* “AI news app”
+* “social media summarizer”
+* “startup content platform”
+That broader framing will tempt you into building too much.
+The MVP should win by being:
+* smaller
+* faster
+* more passive
+* more curated
+* more opinionated
+If you want, I can turn this into a founder-style product spec doc with sections like problem, user, MVP features, ranking logic, UI, tech stack, and 2-week build plan.

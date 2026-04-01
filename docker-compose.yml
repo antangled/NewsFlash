@@ -1,0 +1,7 @@
+version: '3'
+services:
+  rsshub:
+    image: diygod/rsshub
+    ports:
+      - '1200:1200'
+    restart: unless-stopped

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    /* ── Reset & Base ─────────────────────────── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 380px;
+      min-height: 200px;
+      background: #0a0a14;
+      color: #d0cfe0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ───────────────────────────────── */
+    .header {
+      padding: 16px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(123, 104, 238, 0.1);
+      background: linear-gradient(180deg, rgba(123, 104, 238, 0.06) 0%, transparent 100%);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-icon {
+      font-size: 16px;
+    }
+
+    .brand {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tier-badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(123, 104, 238, 0.15);
+      color: #7b68ee;
+    }
+
+    .tier-badge.pro {
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      color: #fff;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .refresh-btn {
+      all: unset;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+      transition: color 0.2s, transform 0.3s;
+      display: flex;
+      align-items: center;
+    }
+
+    .refresh-btn:hover {
+      color: #7b68ee;
+    }
+
+    .refresh-btn.spinning {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Stories List ──────────────────────────── */
+    .stories {
+      padding: 4px 0;
+      max-height: 420px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(123, 104, 238, 0.2) transparent;
+    }
+
+    .stories::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .stories::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .stories::-webkit-scrollbar-thumb {
+      background: rgba(123, 104, 238, 0.2);
+      border-radius: 2px;
+    }
+
+    /* ── Story Card ────────────────────────────── */
+    .story {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+
+    .story:hover {
+      background: rgba(123, 104, 238, 0.04);
+    }
+
+    .story.open {
+      background: rgba(123, 104, 238, 0.06);
+      border-left-color: #7b68ee;
+    }
+
+    .story-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .story-rank {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7b68ee;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(123, 104, 238, 0.1);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .story-headline {
+      font-weight: 500;
+      font-size: 13px;
+      color: #e2e0f0;
+      line-height: 1.45;
+    }
+
+    .story-expand-indicator {
+      position: absolute;
+      right: 20px;
+      top: 14px;
+      font-size: 10px;
+      color: #444;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .story.open .story-expand-indicator {
+      transform: rotate(180deg);
+      color: #7b68ee;
+    }
+
+    .story-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.3s ease;
+      opacity: 0;
+      margin-left: 28px;
+    }
+
+    .story.open .story-body {
+      max-height: 200px;
+      opacity: 1;
+    }
+
+    .story-detail {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    .story-sources {
+      font-size: 11px;
+      color: #6b68a8;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .source-tag {
+      padding: 1px 6px;
+      background: rgba(123, 104, 238, 0.08);
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .story-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.03);
+      margin: 0 20px;
+    }
+
+    /* ── Pro Upsell Card ──────────────────────── */
+    .upsell {
+      margin: 8px 16px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(123, 104, 238, 0.12), rgba(167, 139, 250, 0.08));
+      border: 1px solid rgba(123, 104, 238, 0.15);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.1s;
+    }
+
+    .upsell:hover {
+      border-color: rgba(123, 104, 238, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .upsell:active {
+      transform: translateY(0);
+    }
+
+    .upsell-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .upsell-desc {
+      font-size: 11px;
+      color: #777;
+      line-height: 1.5;
+    }
+
+    .upsell-price {
+      font-size: 11px;
+      color: #7b68ee;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .upsell.hidden { display: none; }
+
+    /* ── Empty State ──────────────────────────── */
+    .empty {
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* ── Onboarding ────────────────────────────── */
+    .onboarding {
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .onboarding.hidden { display: none; }
+
+    .onboarding-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+
+    .onboarding-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e2e0f0;
+      margin-bottom: 8px;
+    }
+
+    .onboarding-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .onboarding-features {
+      text-align: left;
+      margin: 0 auto 20px;
+      max-width: 260px;
+    }
+
+    .onboarding-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .onboarding-feature-icon {
+      color: #7b68ee;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .onboarding-btn {
+      all: unset;
+      display: inline-block;
+      padding: 10px 28px;
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .onboarding-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* ── Footer ────────────────────────────────── */
+    .footer {
+      padding: 10px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-label {
+      color: #666;
+      font-size: 11px;
+    }
+
+    .toggle {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 32px;
+      height: 18px;
+      background: #1e1e30;
+      border-radius: 9px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle:checked {
+      background: #7b68ee;
+      border-color: transparent;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toggle:checked::after {
+      transform: translateX(14px);
+    }
+
+    .footer-info {
+      font-size: 10px;
+      color: #444;
+    }
+
+    /* ── Seed notice ──────────────────────────── */
+    .seed-notice {
+      display: none;
+      padding: 6px 20px;
+      background: rgba(123, 104, 238, 0.06);
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+    }
+
+    .seed-notice.visible {
+      display: block;
+    }
+
+    /* ── Pro Features Section ─────────────────── */
+    .pro-section {
+      display: none;
+      padding: 8px 16px;
+    }
+
+    .pro-section.visible {
+      display: block;
+    }
+
+    .pro-feature-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 4px;
+      font-size: 12px;
+      color: #999;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .pro-feature-row:last-child {
+      border-bottom: none;
+    }
+
+    .pro-feature-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ── Archive Section ──────────────────────── */
+    .archive-section {
+      display: none;
+      padding: 8px 16px;
+    }
+
+    .archive-section.visible {
+      display: block;
+    }
+
+    .archive-locked {
+      text-align: center;
+      padding: 16px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .archive-locked-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+      opacity: 0.5;
+    }
+
+    /* ── Tabs ──────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0 16px;
+    }
+
+    .tab {
+      all: unset;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab:hover {
+      color: #999;
+    }
+
+    .tab.active {
+      color: #7b68ee;
+      border-bottom-color: #7b68ee;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ── Admin Section ────────────────────────── */
+    .admin-section {
+      padding: 20px;
+    }
+
+    .admin-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
+    .admin-btn {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(123, 104, 238, 0.08);
+      border: 1px solid rgba(123, 104, 238, 0.15);
+      border-radius: 8px;
+      color: #d0cfe0;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .admin-btn:hover {
+      background: rgba(123, 104, 238, 0.14);
+      border-color: rgba(123, 104, 238, 0.3);
+    }
+
+    .admin-btn:active {
+      transform: scale(0.99);
+    }
+
+    .admin-btn-icon {
+      font-size: 14px;
+    }
+
+    .admin-status {
+      font-size: 11px;
+      color: #555;
+      min-height: 16px;
+      margin-top: 4px;
+    }
+
+    .admin-status.ok { color: #4ade80; }
+    .admin-status.err { color: #f87171; }
+
+    /* ── Animations ────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .story {
+      animation: fadeInUp 0.3s ease forwards;
+    }
+
+    .story:nth-child(1) { animation-delay: 0.02s; }
+    .story:nth-child(2) { animation-delay: 0.06s; }
+    .story:nth-child(3) { animation-delay: 0.10s; }
+    .story:nth-child(4) { animation-delay: 0.14s; }
+    .story:nth-child(5) { animation-delay: 0.18s; }
+    .story:nth-child(6) { animation-delay: 0.22s; }
+    .story:nth-child(7) { animation-delay: 0.26s; }
+  </style>
+</head>
+<body>
+  <!-- Onboarding (shown once) -->
+  <div class="onboarding hidden" id="onboarding">
+    <div class="onboarding-icon">&#9889;</div>
+    <div class="onboarding-title">Welcome to NewsFlash</div>
+    <div class="onboarding-desc">
+      High-signal tech news from Twitter/X, delivered passively.<br>
+      No scrolling. No noise. Just what matters.
+    </div>
+    <div class="onboarding-features">
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Top stories appear in a subtle bottom bar</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Sourced from 50+ curated tech insiders</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>AI-ranked by importance, not engagement</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Dismiss anytime with one click or Esc</span>
+      </div>
+    </div>
+    <button class="onboarding-btn" id="onboarding-btn">Get Started</button>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content" style="display:none;">
+    <div class="header">
+      <div class="brand-group">
+        <span class="brand-icon">&#9889;</span>
+        <span class="brand">NEWSFLASH</span>
+        <span class="tier-badge" id="tier-badge">FREE</span>
+      </div>
+      <div class="header-right">
+        <span class="date" id="date"></span>
+        <button class="refresh-btn" id="refresh-btn" title="Refresh stories">&#8635;</button>
+      </div>
+    </div>
+
+    <div class="seed-notice" id="seed-notice">
+      Sample stories shown &mdash; live stories update automatically
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="today">Today</button>
+      <button class="tab" data-tab="archive">Archive</button>
+      <button class="tab" data-tab="admin">Admin</button>
+    </div>
+
+    <!-- Today tab -->
+    <div class="tab-content active" id="tab-today">
+      <div class="stories" id="stories"></div>
+
+      <div class="upsell" id="upsell">
+        <div class="upsell-title">
+          <span>&#10024;</span> Upgrade to Pro
+        </div>
+        <div class="upsell-desc">
+          Get breaking alerts, 30-day archive, topic filters, and more stories daily.
+        </div>
+        <div class="upsell-price">$4.99/mo or $39/year</div>
+      </div>
+    </div>
+
+    <!-- Archive tab -->
+    <div class="tab-content" id="tab-archive">
+      <div class="archive-section visible">
+        <div class="archive-locked" id="archive-content">
+          <div class="archive-locked-icon">&#128274;</div>
+          <div>30-day archive is a Pro feature</div>
+          <div style="margin-top:8px; color:#7b68ee; cursor:pointer;" id="archive-upgrade">Upgrade to unlock &rarr;</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin tab -->
+    <div class="tab-content" id="tab-admin">
+      <div class="admin-section">
+        <div class="admin-title">Test Tools</div>
+        <button class="admin-btn" id="admin-test-flash">
+          <span class="admin-btn-icon">&#9889;</span>
+          Trigger Test Flash
+        </button>
+        <div class="admin-status" id="admin-flash-status"></div>
+
+        <button class="admin-btn" id="admin-reset-dismiss" style="margin-top: 8px;">
+          <span class="admin-btn-icon">&#8634;</span>
+          Reset Dismissal
+        </button>
+        <div class="admin-status" id="admin-reset-status"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="toggle-group">
+        <span class="toggle-label">Bottom bar</span>
+        <input type="checkbox" class="toggle" id="toggle" checked>
+      </div>
+      <div class="footer-info" id="footer-info">5 stories/day</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
