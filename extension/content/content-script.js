@@ -44,7 +44,7 @@
   function injectBar(stories, tier) {
     const host = document.createElement('div');
     host.id = 'newsflash-host';
-    host.style.cssText = 'all:initial; position:fixed; bottom:0; left:0; right:0; z-index:2147483647; pointer-events:none;';
+    host.style.cssText = 'all:initial; position:fixed; bottom:16px; left:16px; right:16px; z-index:2147483647; pointer-events:none;';
     document.body.appendChild(host);
 
     const shadow = host.attachShadow({ mode: 'closed' });
@@ -78,10 +78,6 @@
 
     // Build structure
     const inner = el('div', 'nf-inner');
-
-    // Left accent
-    const accent = el('div', 'nf-accent');
-    inner.appendChild(accent);
 
     // Brand pill
     const brand = el('div', 'nf-brand');
@@ -214,16 +210,16 @@
 
 .nf-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   font-size: 13px;
   line-height: 1.4;
   pointer-events: auto;
-  transform: translateY(100%);
+  transform: translateY(calc(100% + 32px));
   opacity: 0;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.4s ease;
   z-index: 2147483647;
 }
@@ -233,27 +229,23 @@
   opacity: 1;
 }
 
-/* ── Inner bar ────────────────────────────── */
+/* ── Inner bar (frosted glass) ───────────── */
 .nf-inner {
   display: flex;
   align-items: center;
-  height: 38px;
-  padding: 0 16px 0 0;
-  background: rgba(12, 12, 20, 0.88);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-top: 1px solid rgba(123, 104, 238, 0.15);
-  color: #d0cfe0;
+  height: 44px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(50px) saturate(1.8) brightness(1.1);
+  -webkit-backdrop-filter: blur(50px) saturate(1.8) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  color: #fff;
   gap: 10px;
-}
-
-/* ── Accent line ──────────────────────────── */
-.nf-accent {
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(180deg, #7b68ee 0%, #a78bfa 50%, #7b68ee 100%);
-  flex-shrink: 0;
-  border-radius: 0 2px 2px 0;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* ── Brand ────────────────────────────────── */
@@ -263,9 +255,9 @@
   gap: 4px;
   flex-shrink: 0;
   padding: 3px 8px;
-  background: rgba(123, 104, 238, 0.12);
-  border-radius: 6px;
-  margin-left: 10px;
+  background: rgba(123, 104, 238, 0.2);
+  border: 1px solid rgba(123, 104, 238, 0.15);
+  border-radius: 8px;
 }
 
 .nf-brand-icon {
@@ -277,14 +269,14 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  color: #7b68ee;
+  color: #b8a9ff;
   text-transform: uppercase;
 }
 
 /* ── Counter ──────────────────────────────── */
 .nf-counter {
   font-size: 11px;
-  color: #555;
+  color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
   min-width: 28px;
@@ -303,11 +295,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
-  color: #e2e0f0;
+  color: #fff;
   opacity: 1;
   transition: opacity 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .nf-headline.nf-fading {
@@ -321,27 +314,27 @@
 /* ── Dots ─────────────────────────────────── */
 .nf-dots {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   flex-shrink: 0;
   padding: 0 4px;
 }
 
 .nf-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.2);
   transition: background 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
 
 .nf-dot.active {
-  background: #7b68ee;
+  background: rgba(255, 255, 255, 0.85);
   transform: scale(1.3);
 }
 
 .nf-dot:hover {
-  background: rgba(123, 104, 238, 0.5);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* ── Dismiss ──────────────────────────────── */
@@ -350,53 +343,69 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
   font-size: 11px;
-  color: #555;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.2s, color 0.2s;
 }
 
 .nf-dismiss:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #aaa;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Expanded panel ───────────────────────── */
 .nf-expand {
   max-height: 0;
   overflow: hidden;
-  background: rgba(12, 12, 20, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 0 16px 0 52px;
+  padding: 0 16px 0 16px;
   transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
               padding 0.35s ease;
 }
 
+.nf-bar.nf-expanded .nf-inner {
+  border-radius: 16px 16px 0 0;
+}
+
 .nf-bar.nf-expanded .nf-expand {
   max-height: 120px;
-  padding: 8px 16px 12px 52px;
+  padding: 8px 16px 14px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(50px) saturate(1.8);
+  -webkit-backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .nf-detail {
   font-size: 12px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.65);
   line-height: 1.6;
   margin-bottom: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .nf-sources {
   font-size: 11px;
-  color: #6b68a8;
+  color: rgba(180, 170, 255, 0.7);
   letter-spacing: 0.2px;
 }
 
 /* ── Responsive: hide on very narrow screens */
 @media (max-width: 480px) {
+  .nf-bar {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
   .nf-brand-text { display: none; }
   .nf-counter { display: none; }
   .nf-dots { display: none; }
