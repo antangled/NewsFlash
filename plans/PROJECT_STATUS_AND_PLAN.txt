@@ -1,0 +1,272 @@
+==============================================================================
+                    NEWSFLASH — PROJECT STATUS & PLAN
+                         Last Updated: 2026-04-04
+==============================================================================
+
+OVERVIEW
+--------
+NewsFlash is a Chrome extension + Node.js backend that delivers high-signal
+tech news from Twitter/X passively via a frosted-glass bottom bar on every
+webpage. Free tier gives 5 stories/day; Pro ($4.99/mo) unlocks 10 stories,
+breaking alerts, archive access, and topic customization.
+
+Architecture: Express 5 + TypeScript + SQLite + Gemini 2.0 Flash (backend)
+              Manifest V3 + Shadow DOM content script + popup (extension)
+              RSSHub Docker container for Twitter/X feed ingestion
+
+
+==============================================================================
+                        WHAT'S WORKING RIGHT NOW
+==============================================================================
+
+BACKEND (Port 3000)
+  [x] Express server with SQLite (WAL mode) database
+  [x] Database schema: raw_tweets + stories tables
+  [x] API key authentication (X-NewsFlash-Key header)
+  [x] CORS configured for extensions + Render deployments
+  [x] Tweet ingestion from 57 curated accounts via RSSHub
+      - Tier 1 (13): Sam Altman, Elon, Satya, Sundar, Karpathy, etc.
+      - Tier 2 (19): OpenAI, Anthropic, Google AI, Stripe, etc.
+      - Tier 3 (25): TechCrunch, Kyle Wiggers, Mark Gurman, etc.
+  [x] Noise filtering (replies, retweets, short tweets, hashtag spam)
+  [x] LLM-based scoring, clustering, and summarization (with Gemini key)
+  [x] Cross-source confirmation bonus (3+ sources = +0.10)
+  [x] Cron scheduler: runs pipeline at 6 AM + 12 PM UTC
+  [x] Manual pipeline trigger: POST /api/pipeline/run
+  [x] API endpoints: /health, /stories/today, /stories/archive/:date,
+      /tier/info, /stories/personal
+  [x] Twitter OAuth PKCE routes (auth, callback, token, disconnect)
+  [x] Graceful degradation: falls back to seed data if no Gemini key
+
+CHROME EXTENSION
+  [x] Bottom bar: frosted glass floating pill, shadow DOM injection
+  [x] Story cycling (6s interval), expand for details + sources
+  [x] Keyboard support: Escape to dismiss, dot navigation
+  [x] Responsive: hides counter/dots on mobile (<480px)
+  [x] Popup: Today | Archive | Settings | Admin (hidden) tabs
+  [x] Story cards with expand/collapse in popup
+  [x] Feed source picker: Curated vs Personal (Twitter OAuth)
+  [x] Twitter OAuth connect/disconnect in settings
+  [x] Breaking news badge + notifications (score > 0.95)
+  [x] Seed data fallback (5 hardcoded stories, never empty)
+  [x] Per-day dismissal via chrome.storage
+  [x] Free tier: 5 stories/day, Pro tier: unlimited
+  [x] Accessibility: ARIA labels, keyboard nav, semantic HTML
+  [x] Admin panel: test flash trigger, reset dismissal
+
+INFRASTRUCTURE
+  [x] start.sh: checks Docker, starts RSSHub, installs deps, runs dev
+  [x] docker-compose.yml for RSSHub on port 1200
+  [x] Auto-cleanup: 7-day data retention for raw tweets
+
+
+==============================================================================
+               WHAT'S PARTIALLY WORKING / NEEDS ATTENTION
+==============================================================================
+
+1. PIPELINE (works but depends on API key)
+   - Steps 3-5 (score, cluster, summarize) require a real GEMINI_API_KEY
+   - Without it, pipeline skips to seed/fallback stories
+   - Currently .env has a placeholder key
+   - STATUS: Functional code, blocked by missing credential
+
+2. TWITTER PERSONAL FEED
+   - OAuth PKCE flow is coded (auth.ts, 365 lines)
+   - Needs TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET in .env
+   - Need to register app at developer.twitter.com
+   - Token refresh logic not implemented (tokens will expire)
+   - STATUS: Code complete, untested without credentials
+
+3. ARCHIVE TAB
+   - Backend endpoint exists: GET /api/stories/archive/:date
+   - Frontend shows "Coming soon" placeholder
+   - No date picker UI, no pagination, no calendar component
+   - STATUS: Backend ready, frontend needs implementation
+
+4. PRO TIER GATING
+   - UI differentiates Free vs Pro (story count, upsell prompts)
+   - Demo mode lets users "unlock" Pro by clicking upsell
+   - No actual payment verification or account tracking
+   - STATUS: UI shell only, no real enforcement
+
+
+==============================================================================
+                   WHAT STILL NEEDS TO BE DONE (MVP)
+==============================================================================
+
+PRIORITY 1 — CRITICAL BLOCKERS (must fix to ship)
+-------------------------------------------------
+
+[ ] 1. Obtain and configure real GEMINI_API_KEY
+       Without this, the entire pipeline is non-functional.
+       Users only see hardcoded seed stories.
+
+[ ] 2. Deploy backend to production (Render recommended)
+       - Currently localhost-only
+       - Extension manifest already has *.onrender.com whitelisted
+       - Need to set all env vars on hosting platform
+       - Set up RSSHub instance (or use public instance)
+
+[ ] 3. Update extension API base URL for production
+       - Point to deployed Render URL instead of localhost:3000
+       - Keep localhost as dev fallback
+
+[ ] 4. Publish extension to Chrome Web Store
+       - Create developer account ($5 one-time fee)
+       - Prepare store listing (screenshots, description, privacy policy)
+       - Submit for review
+
+[ ] 5. Commit and push all uncommitted changes
+       - 9 modified files + 3 untracked files not yet committed
+       - Includes Twitter OAuth, pipeline improvements, UI refactors
+
+
+PRIORITY 2 — IMPORTANT FOR QUALITY (ship-worthy product)
+---------------------------------------------------------
+
+[ ] 6. Error handling & monitoring
+       - Add structured logging (not just console.log)
+       - Pipeline failure notifications or dashboard
+       - API error responses with useful messages
+
+[ ] 7. Token refresh for Twitter OAuth
+       - Tokens expire; need automatic refresh flow
+       - Currently tokens stored client-side with no refresh
+
+[ ] 8. Rate limiting
+       - No per-user API call limits currently
+       - Could be abused if backend URL is discovered
+       - Add express-rate-limit or similar
+
+[ ] 9. Archive tab implementation
+       - Add date picker component to popup
+       - Wire up to GET /api/stories/archive/:date
+       - Pro-only gating (already in backend)
+
+[ ] 10. Basic README / setup documentation
+        - How to run locally
+        - Environment variable reference
+        - Architecture overview for contributors
+
+
+PRIORITY 3 — PRO TIER & MONETIZATION (post-launch)
+----------------------------------------------------
+
+[ ] 11. Payment integration (Stripe recommended)
+        - Checkout flow for $4.99/mo or $39/yr
+        - Webhook to update user tier
+
+[ ] 12. User accounts / authentication
+        - Registration + login system
+        - Subscription status tracking
+        - Sync tier across devices
+
+[ ] 13. Topic customization (Pro feature)
+        - Let users pick interest categories
+        - Filter pipeline output by topics
+
+[ ] 14. 4x daily updates (Pro feature)
+        - Currently 2x/day (6 AM + 12 PM UTC)
+        - Pro users get 6 AM, 10 AM, 2 PM, 6 PM
+
+[ ] 15. Breaking alerts (Pro feature)
+        - Badge logic exists (score > 0.95)
+        - Need push notification infrastructure
+        - Chrome notification permission flow
+
+
+PRIORITY 4 — NICE TO HAVE (future iterations)
+----------------------------------------------
+
+[ ] 16. Desktop app (Tauri)
+        - Scaffold exists in desktop/ directory
+        - Config done (borderless, transparent, always-on-top window)
+        - No actual UI or backend integration built
+        - Lower priority since extension covers the use case
+
+[ ] 17. Testing
+        - No tests currently (unit, integration, or E2E)
+        - Priority: pipeline logic, API endpoints, extension messaging
+
+[ ] 18. Analytics
+        - Track story engagement, click-through, dismissal rates
+        - Pipeline health metrics (success rate, tweet volume)
+
+[ ] 19. Multi-browser support
+        - Firefox extension (Manifest V2 compatibility)
+        - Safari extension (WebExtension API)
+
+[ ] 20. Content sources beyond Twitter/X
+        - Hacker News, Reddit, Product Hunt
+        - RSS feeds from tech blogs
+        - GitHub trending repos
+
+
+==============================================================================
+                       COMPLETION ESTIMATE
+==============================================================================
+
+  Component           | Complete | Notes
+  --------------------|----------|----------------------------------------
+  Backend API         |   80%    | Works with Gemini key; needs deploy
+  Pipeline            |   85%    | All 5 steps coded; needs real API key
+  Extension UI        |   95%    | Polished, accessible, responsive
+  Extension Logic     |   85%    | Fetching, caching, OAuth all coded
+  Twitter Integration |   70%    | OAuth done, needs credentials + testing
+  Pro Tier            |   10%    | UI shell only, no payment system
+  Desktop App         |    5%    | Tauri scaffold, nothing functional
+  Testing             |    0%    | No tests written
+  Documentation       |    5%    | This file + MVP Plan.txt only
+  --------------------|----------|----------------------------------------
+  OVERALL MVP         |  ~65%    | Core product works; needs keys + deploy
+
+==============================================================================
+                        QUICK START (for dev)
+==============================================================================
+
+  1. Start Docker Desktop
+  2. Run: ./start.sh
+     (starts RSSHub container + backend dev server)
+  3. Load extension in Chrome:
+     chrome://extensions → Load unpacked → select extension/ folder
+  4. To test pipeline manually:
+     curl -X POST http://localhost:3000/api/pipeline/run \
+       -H "X-NewsFlash-Key: nf-dev-key-2024"
+
+==============================================================================
+                     ENVIRONMENT VARIABLES NEEDED
+==============================================================================
+
+  GEMINI_API_KEY         — Google AI Studio (ai.google.dev)
+  NEWSFLASH_API_KEY      — Any secret string for API auth
+  TWITTER_CLIENT_ID      — From developer.twitter.com
+  TWITTER_CLIENT_SECRET  — From developer.twitter.com
+  RSSHUB_BASE_URL        — http://localhost:1200 (dev)
+  PORT                   — 3000 (default)
+  TWITTER_CALLBACK_URL   — http://localhost:3000/api/auth/twitter/callback
+
+==============================================================================
+                      DATA FLOW (end to end)
+==============================================================================
+
+  Twitter/X accounts (57 curated)
+       ↓
+  RSSHub (Docker, port 1200) converts to RSS
+       ↓
+  [Ingest] fetches last 24h tweets → raw_tweets table
+       ↓
+  [Filter] removes spam/noise (~50-60% filtered)
+       ↓
+  [Score] Gemini classifies events + tier weighting
+       ↓
+  [Cluster] Gemini groups by topic + cross-source bonus
+       ↓
+  [Summarize] Gemini generates headlines + details → stories table
+       ↓
+  Extension fetches /api/stories/today (every 60 min)
+       ↓
+  Content script injects bottom bar (shadow DOM, every page)
+       ↓
+  User reads headlines passively, clicks to expand
+
+==============================================================================
