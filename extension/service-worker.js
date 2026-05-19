@@ -64,20 +64,37 @@ chrome.runtime.onInstalled.addListener(() => {
 
   // Then try to fetch real stories
   fetchAndStoreStories();
-  chrome.alarms.create('daily-fetch', { periodInMinutes: 360 });
+  chrome.alarms.create('periodic-fetch', { periodInMinutes: 60 });
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'daily-fetch') {
+  if (alarm.name === 'periodic-fetch') {
     fetchAndStoreStories();
   }
 });
 
 async function fetchAndStoreStories() {
   try {
-    const res = await fetch(`${API_BASE}/api/stories/today`, {
-      headers: { 'X-NewsFlash-Key': API_KEY },
-    });
+    // Read the user's tier and feed source from storage
+    const storage = await chrome.storage.local.get(['tier', 'feedSource', 'twitterAccessToken']);
+    const userTier = storage.tier || 'free';
+    const feedSource = storage.feedSource || 'curated';
+
+    let res;
+    if (feedSource === 'personal' && storage.twitterAccessToken) {
+      // Fetch personal stories using Twitter access token
+      res = await fetch(`${API_BASE}/api/stories/personal`, {
+        headers: { Authorization: `Bearer ${storage.twitterAccessToken}` },
+      });
+    } else {
+      // Default: fetch curated stories
+      res = await fetch(`${API_BASE}/api/stories/today`, {
+        headers: {
+          'X-NewsFlash-Key': API_KEY,
+          'X-NewsFlash-Tier': userTier,
+        },
+      });
+    }
 
     if (!res.ok) {
       console.error('[NewsFlash] API returned', res.status);
@@ -86,6 +103,11 @@ async function fetchAndStoreStories() {
 
     const data = await res.json();
     const stories = data.stories || [];
+
+    // If personal feed returned a fallback, log it
+    if (data.fallback) {
+      console.warn('[NewsFlash] Personal feed fallback:', data.reason);
+    }
 
     if (stories.length > 0) {
       await chrome.storage.local.set({
@@ -170,6 +192,105 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === 'ONBOARDING_COMPLETE') {
     chrome.storage.local.set({ onboardingShown: true });
     sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'START_TWITTER_OAUTH') {
+    (async () => {
+      try {
+        // 1. Get the auth URL from backend
+        const res = await fetch(`${API_BASE}/api/auth/twitter`);
+        if (!res.ok) {
+          sendResponse({ ok: false, error: 'Failed to get auth URL' });
+          return;
+        }
+        const { url } = await res.json();
+
+        // 2. Open the auth URL in a new tab
+        const authTab = await chrome.tabs.create({ url });
+
+        // 3. Listen for the callback tab to redirect with nf_callback param
+        const listener = async (tabId, changeInfo, tab) => {
+          if (tabId !== authTab.id || changeInfo.status !== 'complete') return;
+          if (!tab.url) return;
+
+          let tabUrl;
+          try { tabUrl = new URL(tab.url); } catch { return; }
+
+          const code = tabUrl.searchParams.get('code');
+          const state = tabUrl.searchParams.get('state');
+          const nfCallback = tabUrl.searchParams.get('nf_callback');
+
+          if (!nfCallback || !code || !state) return;
+
+          // Remove the listener
+          chrome.tabs.onUpdated.removeListener(listener);
+
+          try {
+            // 4. Exchange the code for tokens
+            const tokenRes = await fetch(`${API_BASE}/api/auth/twitter/token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code, state }),
+            });
+
+            if (!tokenRes.ok) {
+              sendResponse({ ok: false, error: 'Token exchange failed' });
+              chrome.tabs.remove(tabId).catch(() => {});
+              return;
+            }
+
+            const tokenData = await tokenRes.json();
+
+            // 5. Store twitter credentials
+            await chrome.storage.local.set({
+              twitterConnected: true,
+              twitterHandle: tokenData.handle,
+              twitterAccessToken: tokenData.accessToken,
+              twitterRefreshToken: tokenData.refreshToken,
+            });
+
+            // 6. Close the auth tab
+            chrome.tabs.remove(tabId).catch(() => {});
+
+            sendResponse({ ok: true, handle: tokenData.handle });
+          } catch (err) {
+            console.error('[NewsFlash] OAuth token exchange error:', err);
+            sendResponse({ ok: false, error: 'Token exchange failed' });
+            chrome.tabs.remove(tabId).catch(() => {});
+          }
+        };
+
+        chrome.tabs.onUpdated.addListener(listener);
+
+        // Safety: remove listener after 5 minutes to prevent leaks
+        setTimeout(() => {
+          chrome.tabs.onUpdated.removeListener(listener);
+        }, 5 * 60 * 1000);
+      } catch (err) {
+        console.error('[NewsFlash] OAuth start error:', err);
+        sendResponse({ ok: false, error: 'Failed to start OAuth' });
+      }
+    })();
+    return true;
+  }
+
+  if (msg.type === 'DISCONNECT_TWITTER') {
+    (async () => {
+      try {
+        await fetch(`${API_BASE}/api/auth/twitter/disconnect`, { method: 'POST' });
+      } catch (err) {
+        console.error('[NewsFlash] Disconnect API error:', err);
+      }
+      await chrome.storage.local.set({
+        twitterConnected: false,
+        twitterHandle: null,
+        twitterAccessToken: null,
+        twitterRefreshToken: null,
+        feedSource: 'curated',
+      });
+      sendResponse({ ok: true });
+    })();
     return true;
   }
 

@@ -12,13 +12,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const footerInfo = document.getElementById('footer-info');
   const archiveContent = document.getElementById('archive-content');
   const archiveUpgrade = document.getElementById('archive-upgrade');
+  const sourceCurated = document.getElementById('source-curated');
+  const sourcePersonal = document.getElementById('source-personal');
+  const twitterConnectBtn = document.getElementById('twitter-connect-btn');
+  const twitterStatus = document.getElementById('twitter-status');
+
+  // Admin tab reveal: shift-click Settings tab 5 times
+  let settingsShiftClickCount = 0;
+  const settingsTab = document.getElementById('settings-tab');
+  const adminTab = document.getElementById('admin-tab');
 
   // Tab switching
   document.querySelectorAll('.tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+    tab.addEventListener('click', (e) => {
+      // Track shift-clicks on Settings tab for admin reveal
+      if (tab === settingsTab && e.shiftKey) {
+        settingsShiftClickCount++;
+        if (settingsShiftClickCount >= 5 && adminTab) {
+          adminTab.style.display = '';
+          settingsShiftClickCount = 0;
+        }
+      } else if (tab === settingsTab) {
+        settingsShiftClickCount = 0;
+      }
+
+      document.querySelectorAll('.tab').forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
       document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
     });
   });
@@ -45,19 +69,29 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.runtime.sendMessage({ type: 'ONBOARDING_COMPLETE' });
     onboardingEl.classList.add('hidden');
     mainContent.style.display = 'block';
+    loadStories();
   });
 
   // Toggle bar
   toggleEl.addEventListener('change', () => {
-    chrome.storage.local.set({ barEnabled: toggleEl.checked });
+    const updates = { barEnabled: toggleEl.checked };
+    if (toggleEl.checked) {
+      updates.dismissedDate = null;
+    }
+    chrome.storage.local.set(updates);
   });
 
   // Refresh
   refreshBtn.addEventListener('click', () => {
     refreshBtn.classList.add('spinning');
-    chrome.runtime.sendMessage({ type: 'REFRESH_STORIES' }, () => {
+    chrome.runtime.sendMessage({ type: 'REFRESH_STORIES' }, (res) => {
       setTimeout(() => {
         refreshBtn.classList.remove('spinning');
+        if (!res || !res.ok) {
+          const origColor = refreshBtn.style.color;
+          refreshBtn.style.color = '#f87171';
+          setTimeout(() => { refreshBtn.style.color = origColor; }, 1000);
+        }
         loadStories();
       }, 800);
     });
@@ -65,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Upsell click
   upsellEl.addEventListener('click', () => {
-    // For MVP: toggle to pro for demo purposes
+    if (!confirm('Demo mode: This will enable Pro features for free. Continue?')) return;
     chrome.runtime.sendMessage({ type: 'SET_TIER', tier: 'pro' }, () => {
       updateTierUI('pro');
       loadStories();
@@ -80,6 +114,102 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // ── Source Picker Logic ──
+  function selectSource(source, skipRefresh) {
+    if (source === 'curated') {
+      sourceCurated.classList.add('selected');
+      sourcePersonal.classList.remove('selected');
+    } else {
+      sourcePersonal.classList.add('selected');
+      sourceCurated.classList.remove('selected');
+    }
+    chrome.storage.local.set({ feedSource: source });
+    if (!skipRefresh) {
+      chrome.runtime.sendMessage({ type: 'REFRESH_STORIES' }, () => {
+        loadStories();
+      });
+    }
+  }
+
+  function updateTwitterUI(connected, handle) {
+    if (connected && handle) {
+      twitterStatus.innerHTML = `
+        <div class="twitter-connected">
+          <span class="twitter-handle">@${escapeHtml(handle)} Connected &#10003;</span>
+          <span class="twitter-disconnect" id="twitter-disconnect-link">Disconnect</span>
+        </div>
+      `;
+      const disconnectLink = document.getElementById('twitter-disconnect-link');
+      if (disconnectLink) {
+        disconnectLink.addEventListener('click', (e) => {
+          e.stopPropagation();
+          chrome.runtime.sendMessage({ type: 'DISCONNECT_TWITTER' }, () => {
+            updateTwitterUI(false, null);
+            selectSource('curated');
+          });
+        });
+      }
+    } else {
+      twitterStatus.innerHTML = `
+        <button class="twitter-connect-btn" id="twitter-connect-btn">
+          <span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span>
+          Connect Twitter
+        </button>
+        <div id="twitter-error" style="color: #f87171; font-size: 11px; margin-top: 6px; display: none;"></div>
+      `;
+      const btn = document.getElementById('twitter-connect-btn');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const errEl = document.getElementById('twitter-error');
+          if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+          btn.textContent = 'Connecting...';
+          btn.disabled = true;
+          chrome.runtime.sendMessage({ type: 'START_TWITTER_OAUTH' }, (res) => {
+            if (res && res.ok) {
+              updateTwitterUI(true, res.handle);
+              selectSource('personal');
+            } else {
+              btn.innerHTML = '<span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span> Connect Twitter';
+              btn.disabled = false;
+              const errEl2 = document.getElementById('twitter-error');
+              if (errEl2) {
+                errEl2.textContent = 'Connection failed. Make sure the backend is running.';
+                errEl2.style.display = 'block';
+              }
+            }
+          });
+        });
+      }
+    }
+  }
+
+  sourceCurated.addEventListener('click', () => selectSource('curated'));
+  sourcePersonal.addEventListener('click', () => {
+    chrome.storage.local.get(['twitterConnected', 'twitterHandle'], (data) => {
+      if (data.twitterConnected) {
+        selectSource('personal');
+      } else {
+        // Pulse the connect button to draw attention
+        const connectBtn = document.getElementById('twitter-connect-btn');
+        if (connectBtn) {
+          connectBtn.classList.remove('pulse');
+          // Force reflow to restart animation
+          void connectBtn.offsetWidth;
+          connectBtn.classList.add('pulse');
+          setTimeout(() => connectBtn.classList.remove('pulse'), 600);
+        }
+      }
+    });
+  });
+
+  // Load saved source selection and Twitter state
+  chrome.storage.local.get(['feedSource', 'twitterConnected', 'twitterHandle'], (data) => {
+    const source = data.feedSource || 'curated';
+    selectSource(source, true);
+    updateTwitterUI(data.twitterConnected || false, data.twitterHandle || null);
+  });
 
   function updateTierUI(tier) {
     if (tier === 'pro') {
@@ -106,8 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Set default date immediately
+  dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
   // Load stories
   function loadStories() {
+    storiesEl.innerHTML = '<div style="padding: 24px; text-align: center; color: #555; font-size: 12px;">Loading stories...</div>';
     chrome.runtime.sendMessage({ type: 'GET_STORIES' }, (response) => {
       if (chrome.runtime.lastError || !response) {
         storiesEl.innerHTML = `
@@ -158,6 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.className = 'story';
         div.style.opacity = '0';
+        div.setAttribute('tabindex', '0');
+        div.setAttribute('role', 'button');
+        div.setAttribute('aria-expanded', 'false');
 
         const sourcesHtml = story.sources
           ? story.sources
@@ -177,8 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
 
-        div.addEventListener('click', () => {
+        function toggleStory() {
           div.classList.toggle('open');
+          div.setAttribute('aria-expanded', div.classList.contains('open') ? 'true' : 'false');
+        }
+
+        div.addEventListener('click', toggleStory);
+        div.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleStory();
+          }
         });
 
         storiesEl.appendChild(div);

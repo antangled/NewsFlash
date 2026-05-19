@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <style>
@@ -9,12 +9,20 @@
     body {
       width: 380px;
       min-height: 200px;
+      max-height: 580px;
+      overflow-y: auto;
       background: #0a0a14;
       color: #d0cfe0;
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
       font-size: 13px;
       line-height: 1.5;
       overflow-x: hidden;
+    }
+
+    /* Focus styles for all: unset elements */
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid #7b68ee;
+      outline-offset: 2px;
     }
 
     /* ── Header ───────────────────────────────── */
@@ -71,7 +79,7 @@
 
     .date {
       font-size: 11px;
-      color: #555;
+      color: #888;
     }
 
     .refresh-btn {
@@ -170,8 +178,12 @@
       right: 20px;
       top: 14px;
       font-size: 10px;
-      color: #444;
+      color: #666;
       transition: transform 0.2s, color 0.2s;
+    }
+
+    .story:hover .story-expand-indicator {
+      color: #7b68ee;
     }
 
     .story.open .story-expand-indicator {
@@ -288,7 +300,7 @@
 
     .empty-desc {
       font-size: 12px;
-      color: #666;
+      color: #999;
     }
 
     /* ── Onboarding ────────────────────────────── */
@@ -373,7 +385,7 @@
     }
 
     .toggle-label {
-      color: #666;
+      color: #999;
       font-size: 11px;
     }
 
@@ -413,7 +425,7 @@
 
     .footer-info {
       font-size: 10px;
-      color: #444;
+      color: #777;
     }
 
     /* ── Seed notice ──────────────────────────── */
@@ -572,6 +584,144 @@
     .admin-status.ok { color: #4ade80; }
     .admin-status.err { color: #f87171; }
 
+    /* ── Settings Section ─────────────────────── */
+    .settings-section {
+      padding: 16px 20px;
+    }
+
+    .settings-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .source-card {
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .source-card:hover {
+      background: rgba(123, 104, 238, 0.04);
+      border-color: rgba(123, 104, 238, 0.2);
+    }
+
+    .source-card.selected {
+      border-color: #7b68ee;
+      background: rgba(123, 104, 238, 0.08);
+    }
+
+    .source-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .source-radio {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #444;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+
+    .source-card.selected .source-radio {
+      border-color: #7b68ee;
+    }
+
+    .source-radio-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7b68ee;
+      transform: scale(0);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .source-card.selected .source-radio-dot {
+      transform: scale(1);
+    }
+
+    .source-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e0f0;
+    }
+
+    .source-card-desc {
+      font-size: 11px;
+      color: #777;
+      margin-left: 26px;
+      line-height: 1.5;
+    }
+
+    .twitter-status {
+      margin-left: 26px;
+      margin-top: 8px;
+    }
+
+    .twitter-connect-btn {
+      all: unset;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(29, 155, 240, 0.15);
+      border: 1px solid rgba(29, 155, 240, 0.3);
+      border-radius: 6px;
+      color: #1d9bf0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .twitter-connect-btn:hover {
+      background: rgba(29, 155, 240, 0.25);
+      border-color: rgba(29, 155, 240, 0.5);
+    }
+
+    .twitter-connected {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .twitter-handle {
+      color: #4ade80;
+      font-weight: 500;
+    }
+
+    .twitter-disconnect {
+      color: #666;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+
+    .twitter-disconnect:hover {
+      color: #f87171;
+    }
+
+    .twitter-connect-btn .twitter-icon {
+      font-size: 13px;
+    }
+
     /* ── Animations ────────────────────────────── */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(8px); }
@@ -589,6 +739,16 @@
     .story:nth-child(5) { animation-delay: 0.18s; }
     .story:nth-child(6) { animation-delay: 0.22s; }
     .story:nth-child(7) { animation-delay: 0.26s; }
+    .story:nth-child(8) { animation-delay: 0.30s; }
+    .story:nth-child(9) { animation-delay: 0.34s; }
+    .story:nth-child(10) { animation-delay: 0.38s; }
+
+    /* Pulse animation for Twitter connect button */
+    @keyframes pulse-highlight {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.4); }
+    }
+    .pulse { animation: pulse-highlight 0.6s ease; }
   </style>
 </head>
 <body>
@@ -631,7 +791,7 @@
       </div>
       <div class="header-right">
         <span class="date" id="date"></span>
-        <button class="refresh-btn" id="refresh-btn" title="Refresh stories">&#8635;</button>
+        <button class="refresh-btn" id="refresh-btn" title="Refresh stories" aria-label="Refresh stories">&#8635;</button>
       </div>
     </div>
 
@@ -639,14 +799,15 @@
       Sample stories shown &mdash; live stories update automatically
     </div>
 
-    <div class="tabs">
-      <button class="tab active" data-tab="today">Today</button>
-      <button class="tab" data-tab="archive">Archive</button>
-      <button class="tab" data-tab="admin">Admin</button>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+      <button class="tab" data-tab="archive" role="tab" aria-selected="false">Archive</button>
+      <button class="tab" data-tab="settings" role="tab" aria-selected="false" id="settings-tab">Settings</button>
+      <button class="tab" data-tab="admin" role="tab" aria-selected="false" id="admin-tab" style="display:none">Admin</button>
     </div>
 
     <!-- Today tab -->
-    <div class="tab-content active" id="tab-today">
+    <div class="tab-content active" id="tab-today" role="tabpanel">
       <div class="stories" id="stories"></div>
 
       <div class="upsell" id="upsell">
@@ -661,7 +822,7 @@
     </div>
 
     <!-- Archive tab -->
-    <div class="tab-content" id="tab-archive">
+    <div class="tab-content" id="tab-archive" role="tabpanel">
       <div class="archive-section visible">
         <div class="archive-locked" id="archive-content">
           <div class="archive-locked-icon">&#128274;</div>
@@ -671,8 +832,38 @@
       </div>
     </div>
 
+    <!-- Settings tab -->
+    <div class="tab-content" id="tab-settings" role="tabpanel">
+      <div class="settings-section">
+        <div class="settings-title">Feed Source</div>
+
+        <div class="source-card selected" id="source-curated" data-source="curated">
+          <div class="source-card-header">
+            <div class="source-radio"><div class="source-radio-dot"></div></div>
+            <span class="source-card-name">NewsFlash Curated</span>
+          </div>
+          <div class="source-card-desc">Top stories from 50+ curated tech insiders</div>
+        </div>
+
+        <div class="source-card" id="source-personal" data-source="personal">
+          <div class="source-card-header">
+            <div class="source-radio"><div class="source-radio-dot"></div></div>
+            <span class="source-card-name">My Twitter Feed</span>
+          </div>
+          <div class="source-card-desc">Stories from your own timeline</div>
+          <div class="twitter-status" id="twitter-status">
+            <button class="twitter-connect-btn" id="twitter-connect-btn">
+              <span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span>
+              Connect Twitter
+            </button>
+            <div id="twitter-error" style="color: #f87171; font-size: 11px; margin-top: 6px; display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Admin tab -->
-    <div class="tab-content" id="tab-admin">
+    <div class="tab-content" id="tab-admin" role="tabpanel">
       <div class="admin-section">
         <div class="admin-title">Test Tools</div>
         <button class="admin-btn" id="admin-test-flash">
@@ -691,7 +882,7 @@
 
     <div class="footer">
       <div class="toggle-group">
-        <span class="toggle-label">Bottom bar</span>
+        <label for="toggle" class="toggle-label">Show news on pages</label>
         <input type="checkbox" class="toggle" id="toggle" checked>
       </div>
       <div class="footer-info" id="footer-info">5 stories/day</div>

@@ -55,6 +55,7 @@
 
     const bar = document.createElement('div');
     bar.className = 'nf-bar';
+    bar.setAttribute('aria-label', 'NewsFlash news bar');
     shadow.appendChild(bar);
 
     // Slide-in animation
@@ -93,6 +94,8 @@
 
     // Headline area
     const headlineWrap = el('div', 'nf-headline-wrap');
+    headlineWrap.setAttribute('aria-live', 'polite');
+    headlineWrap.setAttribute('role', 'status');
     const headline = el('span', 'nf-headline');
     headlineWrap.appendChild(headline);
     inner.appendChild(headlineWrap);
@@ -110,6 +113,7 @@
     const dismiss = el('button', 'nf-dismiss');
     dismiss.innerHTML = '&#10005;';
     dismiss.title = 'Dismiss for today';
+    dismiss.setAttribute('aria-label', 'Dismiss news bar');
     inner.appendChild(dismiss);
 
     bar.appendChild(inner);
@@ -171,22 +175,26 @@
       });
     });
 
-    // Dismiss
-    dismiss.addEventListener('click', (e) => {
-      e.stopPropagation();
+    function dismissBar() {
       bar.classList.remove('nf-visible');
       setTimeout(() => host.remove(), 400);
       chrome.runtime.sendMessage({ type: 'DISMISS_TODAY' });
+      document.removeEventListener('keydown', escapeHandler);
+    }
+
+    // Dismiss
+    dismiss.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissBar();
     });
 
     // Keyboard: Escape to dismiss
-    document.addEventListener('keydown', (e) => {
+    function escapeHandler(e) {
       if (e.key === 'Escape' && document.getElementById('newsflash-host')) {
-        bar.classList.remove('nf-visible');
-        setTimeout(() => host.remove(), 400);
-        chrome.runtime.sendMessage({ type: 'DISMISS_TODAY' });
+        dismissBar();
       }
-    });
+    }
+    document.addEventListener('keydown', escapeHandler);
 
     showStory(0);
     startCycling();
@@ -209,10 +217,10 @@
 }
 
 .nf-bar {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   font-size: 13px;
   line-height: 1.4;
@@ -233,40 +241,40 @@
 .nf-inner {
   display: flex;
   align-items: center;
-  height: 44px;
-  padding: 0 16px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(50px) saturate(1.8) brightness(1.1);
-  -webkit-backdrop-filter: blur(50px) saturate(1.8) brightness(1.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
+  height: 52px;
+  padding: 0 20px;
+  background: rgba(15, 15, 25, 0.65);
+  backdrop-filter: blur(50px) saturate(1.8);
+  -webkit-backdrop-filter: blur(50px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
   color: #fff;
-  gap: 10px;
+  gap: 12px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* ── Brand ────────────────────────────────── */
 .nf-brand {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex-shrink: 0;
-  padding: 3px 8px;
-  background: rgba(123, 104, 238, 0.2);
-  border: 1px solid rgba(123, 104, 238, 0.15);
-  border-radius: 8px;
+  padding: 4px 10px;
+  background: rgba(123, 104, 238, 0.22);
+  border: 1px solid rgba(123, 104, 238, 0.18);
+  border-radius: 9px;
 }
 
 .nf-brand-icon {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
 }
 
 .nf-brand-text {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.2px;
   color: #b8a9ff;
@@ -275,11 +283,11 @@
 
 /* ── Counter ──────────────────────────────── */
 .nf-counter {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-  min-width: 28px;
+  min-width: 30px;
 }
 
 /* ── Headline ─────────────────────────────── */
@@ -296,11 +304,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 15px;
+  letter-spacing: 0.1px;
   color: #fff;
   opacity: 1;
   transition: opacity 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .nf-headline.nf-fading {
@@ -320,8 +329,8 @@
 }
 
 .nf-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   transition: background 0.3s ease, transform 0.3s ease;
@@ -343,10 +352,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  font-size: 11px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   flex-shrink: 0;
@@ -373,11 +382,12 @@
 
 .nf-bar.nf-expanded .nf-expand {
   max-height: 120px;
+  margin-top: -1px;
   padding: 8px 16px 14px 16px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(15, 15, 25, 0.70);
   backdrop-filter: blur(50px) saturate(1.8);
   -webkit-backdrop-filter: blur(50px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-top: none;
   border-radius: 0 0 16px 16px;
   box-shadow:
@@ -386,26 +396,21 @@
 }
 
 .nf-detail {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
   margin-bottom: 4px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .nf-sources {
-  font-size: 11px;
-  color: rgba(180, 170, 255, 0.7);
+  font-size: 12px;
+  color: rgba(180, 170, 255, 0.75);
   letter-spacing: 0.2px;
 }
 
 /* ── Responsive: hide on very narrow screens */
 @media (max-width: 480px) {
-  .nf-bar {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-  }
   .nf-brand-text { display: none; }
   .nf-counter { display: none; }
   .nf-dots { display: none; }
