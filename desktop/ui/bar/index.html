@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── Wrapper: anchored bottom-right with room for shadows ── */
+    .nf-wrap {
+      position: fixed;
+      bottom: 4px;
+      right: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    /* ── Detail panel (above bar) ────────────── */
+    .nf-detail-panel {
+      position: relative;
+      max-height: 0;
+      overflow: hidden;
+      border-radius: 14px;
+      transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  padding 0.35s ease,
+                  opacity 0.3s ease;
+      opacity: 0;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0 16px;
+      margin-right: 10px;
+    }
+
+    .nf-detail-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(15, 15, 25, 0.65);
+      -webkit-backdrop-filter: blur(50px) saturate(1.8);
+      backdrop-filter: blur(50px) saturate(1.8);
+      animation: keep-blur-alive 1s linear infinite;
+      z-index: 0;
+    }
+
+    .nf-detail-text,
+    .nf-detail-sources {
+      position: relative;
+      z-index: 1;
+    }
+
+    .nf-wrap.detail-open .nf-detail-panel {
+      max-height: 130px;
+      padding: 10px 16px 12px;
+      opacity: 1;
+    }
+
+    .nf-detail-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+      margin-bottom: 4px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .nf-detail-sources {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      color: rgba(180, 170, 255, 0.75);
+      letter-spacing: 0.2px;
+    }
+
+    /* ── Bar row ─────────────────────────────── */
+    .nf-row {
+      display: flex;
+      align-items: center;
+    }
+
+    /* ── The pill (holds content + orb) ──────── */
+    .nf-pill {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 52px;
+      border-radius: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* Frosted glass via pseudo-element. The infinite animation prevents
+       WebKit from optimizing away the backdrop-filter compositing layer
+       (which causes it to go fully transparent when not hovered). */
+    @keyframes keep-blur-alive {
+      0%, 100% { transform: translateZ(0); }
+      50%      { transform: translateZ(0.1px); }
+    }
+
+    .nf-pill::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(15, 15, 25, 0.65);
+      -webkit-backdrop-filter: blur(50px) saturate(1.8);
+      backdrop-filter: blur(50px) saturate(1.8);
+      animation: keep-blur-alive 1s linear infinite;
+      z-index: 0;
+    }
+
+    /* ── Bar content (hidden when collapsed) ─── */
+    .nf-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      padding: 0;
+      white-space: nowrap;
+      transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.25s ease,
+                  padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nf-wrap.expanded .nf-content {
+      max-width: 750px;
+      opacity: 1;
+      padding: 0 8px 0 20px;
+    }
+
+    /* ── Counter ─────────────────────────────── */
+    .nf-counter {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+      min-width: 28px;
+    }
+
+    /* ── Headline ────────────────────────────── */
+    .nf-headline-wrap {
+      flex: 1;
+      min-width: 0;
+      max-width: 520px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .nf-headline {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.1px;
+      color: #fff;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .nf-headline.fading { opacity: 0; }
+
+    /* ── Dots ─────────────────────────────────── */
+    .nf-dots {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    .nf-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      transition: background 0.3s, transform 0.3s;
+      cursor: pointer;
+    }
+
+    .nf-dot.active {
+      background: rgba(255, 255, 255, 0.8);
+      transform: scale(1.3);
+    }
+
+    .nf-dot:hover { background: rgba(255, 255, 255, 0.45); }
+
+    /* ── Dismiss ─────────────────────────────── */
+    .nf-dismiss {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nf-dismiss:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ── Settings ────────────────────────────── */
+    .nf-settings {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s, color 0.2s, transform 0.3s;
+    }
+
+    .nf-settings:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+      transform: rotate(45deg);
+    }
+
+    /* ── Orb (always visible) ────────────────── */
+    .nf-orb {
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nf-orb:hover {
+      transform: scale(1.12);
+    }
+
+    .nf-orb:active {
+      transform: scale(0.95);
+      cursor: grabbing;
+      transition-duration: 0.1s;
+    }
+
+    .nf-logo {
+      font-size: 22px;
+      line-height: 1;
+      display: block;
+      filter: drop-shadow(0 0 6px rgba(123, 104, 238, 0.5));
+      transition: filter 0.3s ease;
+    }
+
+    .nf-orb:hover .nf-logo {
+      filter: drop-shadow(0 0 14px rgba(123, 104, 238, 0.9))
+             drop-shadow(0 0 4px rgba(167, 139, 250, 0.6));
+    }
+
+    /* Clockwise spin on expand (unwinding) */
+    @keyframes logo-spin-cw {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(180deg); }
+    }
+
+    /* Counter-clockwise spin on collapse (winding up) */
+    @keyframes logo-spin-ccw {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(-180deg); }
+    }
+
+    /* !important needed to override the orb-glow animation on collapse */
+    .nf-logo.spin-cw {
+      animation: logo-spin-cw 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .nf-logo.spin-ccw {
+      animation: logo-spin-ccw 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    /* Subtle idle pulse on orb when collapsed and has stories */
+    @keyframes orb-glow {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(123, 104, 238, 0.4)); }
+      50% { filter: drop-shadow(0 0 12px rgba(123, 104, 238, 0.7)); }
+    }
+
+    .nf-wrap:not(.expanded) .nf-orb.has-stories .nf-logo {
+      animation: orb-glow 3s ease-in-out infinite;
+    }
+
+    /* ── Focus styles ────────────────────────── */
+    button:focus-visible {
+      outline: 2px solid #7b68ee;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="nf-wrap" id="wrap">
+    <!-- Detail panel (slides up above bar) -->
+    <div class="nf-detail-panel" id="detail-panel">
+      <div class="nf-detail-text" id="detail-text"></div>
+      <div class="nf-detail-sources" id="detail-sources"></div>
+    </div>
+
+    <!-- Bar row -->
+    <div class="nf-row">
+      <div class="nf-pill" id="pill">
+        <!-- Expandable bar content -->
+        <div class="nf-content" id="content">
+          <span class="nf-counter" id="counter">1/5</span>
+          <div class="nf-headline-wrap" id="headline-wrap">
+            <span class="nf-headline" id="headline"></span>
+          </div>
+          <div class="nf-dots" id="dots"></div>
+          <button class="nf-settings" id="settings-btn" title="Settings" aria-label="Settings">&#9881;</button>
+          <button class="nf-dismiss" id="dismiss-btn" title="Dismiss for today" aria-label="Dismiss">&#10005;</button>
+        </div>
+
+        <!-- Orb (always visible, draggable via native Tauri drag region) -->
+        <div class="nf-orb" id="orb">
+          <span class="nf-logo" id="logo">&#9889;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TAURI = window.__TAURI__;
+    const invoke = TAURI ? TAURI.core.invoke : null;
+    const listen = TAURI ? TAURI.event.listen : null;
+    const appWindow = TAURI ? TAURI.window.getCurrentWindow() : null;
+
+    let stories = [];
+    let currentIndex = 0;
+    let cycleTimer = null;
+    let collapseTimer = null;
+    let isExpanded = false;
+    let isDetailOpen = false;
+    const CYCLE_MS = 6000;
+
+    const wrap = document.getElementById('wrap');
+    const headline = document.getElementById('headline');
+    const headlineWrap = document.getElementById('headline-wrap');
+    const counter = document.getElementById('counter');
+    const dotsContainer = document.getElementById('dots');
+    const dismissBtn = document.getElementById('dismiss-btn');
+    const settingsBtn = document.getElementById('settings-btn');
+    const orb = document.getElementById('orb');
+    const logo = document.getElementById('logo');
+    const detailText = document.getElementById('detail-text');
+    const detailSources = document.getElementById('detail-sources');
+
+    /* ── Load stories ────────────────────────── */
+    if (invoke) {
+      invoke('get_stories').then(response => {
+        if (response.stories && response.stories.length > 0) {
+          const tier = response.tier || 'free';
+          const max = tier === 'pro' ? response.stories.length : Math.min(response.stories.length, 5);
+          stories = response.stories.slice(0, max);
+          renderDots();
+          showStory(0);
+          orb.classList.add('has-stories');
+          setTimeout(() => expandBar(true), 200);
+        }
+      }).catch(err => {
+        console.error('get_stories error:', err);
+      });
+    }
+
+    /* ── Listen for updates ──────────────────── */
+    if (listen) {
+      listen('stories-updated', (e) => {
+        const response = e.payload;
+        if (response.stories && response.stories.length > 0) {
+          const tier = response.tier || 'free';
+          const max = tier === 'pro' ? response.stories.length : Math.min(response.stories.length, 5);
+          stories = response.stories.slice(0, max);
+          renderDots();
+          showStory(0);
+          orb.classList.add('has-stories');
+          expandBar(true);
+        }
+      });
+
+      listen('refresh-stories', () => {
+        if (!invoke) return;
+        invoke('refresh_stories').then(response => {
+          if (response.stories && response.stories.length > 0) {
+            const tier = response.tier || 'free';
+            const max = tier === 'pro' ? response.stories.length : Math.min(response.stories.length, 5);
+            stories = response.stories.slice(0, max);
+            renderDots();
+            showStory(0);
+            orb.classList.add('has-stories');
+            expandBar(true);
+          }
+        });
+      });
+    }
+
+    /* ── Window sizing constants (logical px) ── */
+    const COLLAPSED_W = 62;
+    const COLLAPSED_H = 62;
+    const EXPANDED_W = 840;
+    const EXPANDED_H = 62;
+    const DETAIL_OPEN_H = 210;
+
+    /* ── Expand / Collapse ───────────────────── */
+    function expandBar(withSpin) {
+      if (isExpanded) return;
+      isExpanded = true;
+
+      // Resize window first so the bar has room to expand into
+      if (invoke) invoke('resize_bar', { width: EXPANDED_W, height: EXPANDED_H }).catch(() => {});
+
+      wrap.classList.add('expanded');
+
+      if (withSpin) {
+        spinLogo('cw');
+      }
+
+      startCycling();
+
+      clearTimeout(collapseTimer);
+      collapseTimer = setTimeout(() => {
+        if (!isDetailOpen) collapseBar();
+      }, stories.length * CYCLE_MS + 2000);
+    }
+
+    function spinLogo(dir) {
+      logo.classList.remove('spin-cw', 'spin-ccw');
+      void logo.offsetWidth;
+      logo.classList.add(dir === 'cw' ? 'spin-cw' : 'spin-ccw');
+      logo.addEventListener('animationend', () => {
+        logo.classList.remove('spin-cw', 'spin-ccw');
+      }, { once: true });
+    }
+
+    function collapseBar() {
+      if (!isExpanded) return;
+      isExpanded = false;
+      isDetailOpen = false;
+      wrap.classList.remove('expanded');
+      wrap.classList.remove('detail-open');
+      spinLogo('ccw');
+      stopCycling();
+      clearTimeout(collapseTimer);
+
+      // Shrink window after the content transition finishes (~400ms)
+      setTimeout(() => {
+        if (!isExpanded && invoke) {
+          invoke('resize_bar', { width: COLLAPSED_W, height: COLLAPSED_H }).catch(() => {});
+        }
+      }, 450);
+    }
+
+    /* ── Orb: drag via startDragging, click to toggle ── */
+    let orbMouseDownAt = 0;
+    let dragging = false;
+    let snapping = false;
+
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+    async function animateSnapToRight() {
+      if (!invoke || snapping) return;
+      snapping = true;
+      try {
+        const info = await invoke('get_snap_info');
+        const startX = info.currentX;
+        const targetX = info.targetX;
+        const y = info.currentY;
+        const diff = Math.abs(targetX - startX);
+
+        // If already at target (or very close), just snap instantly
+        if (diff <= 2) {
+          snapping = false;
+          return;
+        }
+
+        // Scale duration by distance, min 80ms, max 250ms
+        const duration = Math.min(250, Math.max(80, diff * 0.4));
+        const startTime = performance.now();
+
+        function step(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutCubic(progress);
+          const currentX = Math.round(startX + (targetX - startX) * eased);
+
+          invoke('set_bar_position', { x: currentX, y }).catch(() => {});
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            invoke('save_bar_y', { y }).catch(() => {});
+            snapping = false;
+          }
+        }
+
+        requestAnimationFrame(step);
+      } catch (e) {
+        snapping = false;
+      }
+    }
+
+    /* ── Always-on snap: whenever the window moves and stops, snap back ── */
+    let moveDebounce = null;
+
+    if (listen) {
+      // Listen globally for window move events. When movement stops
+      // for 120ms (drag released), animate back to the right edge.
+      // The `snapping` flag prevents the animation's own set_bar_position
+      // calls from re-triggering this.
+      listen('tauri://move', () => {
+        if (snapping) return;
+        clearTimeout(moveDebounce);
+        moveDebounce = setTimeout(() => {
+          dragging = false;
+          animateSnapToRight();
+        }, 120);
+      });
+    }
+
+    orb.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      orbMouseDownAt = Date.now();
+      dragging = true;
+      if (appWindow) {
+        appWindow.startDragging().catch(() => { dragging = false; });
+      }
+    });
+
+    orb.addEventListener('click', () => {
+      if (Date.now() - orbMouseDownAt > 250) return;
+      if (stories.length === 0) return;
+      if (isExpanded) collapseBar();
+      else expandBar(true);
+    });
+
+    /* ── Headline click: toggle detail panel ── */
+    headlineWrap.addEventListener('click', () => {
+      isDetailOpen = !isDetailOpen;
+      wrap.classList.toggle('detail-open', isDetailOpen);
+      if (isDetailOpen) {
+        if (invoke) invoke('resize_bar', { width: EXPANDED_W, height: DETAIL_OPEN_H }).catch(() => {});
+        stopCycling();
+        clearTimeout(collapseTimer);
+      } else {
+        if (invoke) invoke('resize_bar', { width: EXPANDED_W, height: EXPANDED_H }).catch(() => {});
+        startCycling();
+        clearTimeout(collapseTimer);
+        collapseTimer = setTimeout(() => collapseBar(), stories.length * CYCLE_MS);
+      }
+    });
+
+    /* ── Story rendering ─────────────────────── */
+    function renderDots() {
+      dotsContainer.innerHTML = '';
+      stories.forEach((_, i) => {
+        const dot = document.createElement('span');
+        dot.className = 'nf-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentIndex = i;
+          showStory(i);
+        });
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function showStory(index) {
+      const story = stories[index];
+      headline.classList.add('fading');
+
+      setTimeout(() => {
+        counter.textContent = `${index + 1}/${stories.length}`;
+        headline.textContent = story.headline;
+        detailText.textContent = story.detail || '';
+        detailSources.textContent = story.sources
+          ? story.sources.map(s => `@${s.handle}`).join('  \u00B7  ')
+          : '';
+        document.querySelectorAll('.nf-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === index);
+        });
+        headline.classList.remove('fading');
+      }, 150);
+    }
+
+    function startCycling() {
+      stopCycling();
+      cycleTimer = setInterval(() => {
+        if (!isDetailOpen) {
+          currentIndex = (currentIndex + 1) % stories.length;
+          showStory(currentIndex);
+        }
+      }, CYCLE_MS);
+    }
+
+    function stopCycling() {
+      if (cycleTimer) {
+        clearInterval(cycleTimer);
+        cycleTimer = null;
+      }
+    }
+
+    /* ── Settings ────────────────────────────── */
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (invoke) invoke('open_settings').catch(() => {});
+    });
+
+    /* ── Dismiss ─────────────────────────────── */
+    dismissBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      collapseBar();
+      setTimeout(() => {
+        if (invoke) invoke('dismiss_today');
+      }, 500);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        collapseBar();
+        setTimeout(() => {
+          if (invoke) invoke('dismiss_today');
+        }, 500);
+      }
+    });
+
+    /* ── Restore saved Y position ────────────── */
+    if (invoke && appWindow) {
+      invoke('get_settings').then(async (settings) => {
+        if (settings.barY != null) {
+          try {
+            const pos = await appWindow.outerPosition();
+            const scale = window.devicePixelRatio || 1;
+            await appWindow.setPosition({
+              type: 'Physical',
+              x: pos.x,
+              y: Math.round(settings.barY * scale)
+            });
+          } catch (e) { /* ignore positioning errors */ }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

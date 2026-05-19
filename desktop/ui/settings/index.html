@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>
+    /* ── Reset & Base ─────────────────────────── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 380px;
+      min-height: 200px;
+      max-height: 580px;
+      overflow-y: auto;
+      background: #0a0a14;
+      color: #d0cfe0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Focus styles */
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid #7b68ee;
+      outline-offset: 2px;
+    }
+
+    /* ── Header ───────────────────────────────── */
+    .header {
+      padding: 16px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(123, 104, 238, 0.1);
+      background: linear-gradient(180deg, rgba(123, 104, 238, 0.06) 0%, transparent 100%);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-icon { font-size: 16px; }
+
+    .brand {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tier-badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(123, 104, 238, 0.15);
+      color: #7b68ee;
+    }
+
+    .tier-badge.pro {
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      color: #fff;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .refresh-btn {
+      all: unset;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+      transition: color 0.2s, transform 0.3s;
+      display: flex;
+      align-items: center;
+    }
+
+    .refresh-btn:hover { color: #7b68ee; }
+
+    .refresh-btn.spinning {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Stories List ──────────────────────────── */
+    .stories {
+      padding: 4px 0;
+      max-height: 420px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(123, 104, 238, 0.2) transparent;
+    }
+
+    .stories::-webkit-scrollbar { width: 4px; }
+    .stories::-webkit-scrollbar-track { background: transparent; }
+    .stories::-webkit-scrollbar-thumb {
+      background: rgba(123, 104, 238, 0.2);
+      border-radius: 2px;
+    }
+
+    /* ── Story Card ────────────────────────────── */
+    .story {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+
+    .story:hover { background: rgba(123, 104, 238, 0.04); }
+
+    .story.open {
+      background: rgba(123, 104, 238, 0.06);
+      border-left-color: #7b68ee;
+    }
+
+    .story-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .story-rank {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7b68ee;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(123, 104, 238, 0.1);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .story-headline {
+      font-weight: 500;
+      font-size: 13px;
+      color: #e2e0f0;
+      line-height: 1.45;
+    }
+
+    .story-expand-indicator {
+      position: absolute;
+      right: 20px;
+      top: 14px;
+      font-size: 10px;
+      color: #666;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .story:hover .story-expand-indicator { color: #7b68ee; }
+
+    .story.open .story-expand-indicator {
+      transform: rotate(180deg);
+      color: #7b68ee;
+    }
+
+    .story-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.3s ease;
+      opacity: 0;
+      margin-left: 28px;
+    }
+
+    .story.open .story-body {
+      max-height: 200px;
+      opacity: 1;
+    }
+
+    .story-detail {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+
+    .story-sources {
+      font-size: 11px;
+      color: #6b68a8;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .source-tag {
+      padding: 1px 6px;
+      background: rgba(123, 104, 238, 0.08);
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .story-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.03);
+      margin: 0 20px;
+    }
+
+    /* ── Pro Upsell Card ──────────────────────── */
+    .upsell {
+      margin: 8px 16px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(123, 104, 238, 0.12), rgba(167, 139, 250, 0.08));
+      border: 1px solid rgba(123, 104, 238, 0.15);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.1s;
+    }
+
+    .upsell:hover {
+      border-color: rgba(123, 104, 238, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .upsell:active { transform: translateY(0); }
+
+    .upsell-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .upsell-desc {
+      font-size: 11px;
+      color: #777;
+      line-height: 1.5;
+    }
+
+    .upsell-price {
+      font-size: 11px;
+      color: #7b68ee;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .upsell.hidden { display: none; }
+
+    /* ── Empty State ──────────────────────────── */
+    .empty {
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ── Onboarding ────────────────────────────── */
+    .onboarding {
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .onboarding.hidden { display: none; }
+
+    .onboarding-icon { font-size: 36px; margin-bottom: 16px; }
+
+    .onboarding-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e2e0f0;
+      margin-bottom: 8px;
+    }
+
+    .onboarding-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .onboarding-features {
+      text-align: left;
+      margin: 0 auto 20px;
+      max-width: 260px;
+    }
+
+    .onboarding-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .onboarding-feature-icon {
+      color: #7b68ee;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .onboarding-btn {
+      all: unset;
+      display: inline-block;
+      padding: 10px 28px;
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .onboarding-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* ── Footer ────────────────────────────────── */
+    .footer {
+      padding: 10px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-label {
+      color: #999;
+      font-size: 11px;
+    }
+
+    .toggle {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 32px;
+      height: 18px;
+      background: #1e1e30;
+      border-radius: 9px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle:checked {
+      background: #7b68ee;
+      border-color: transparent;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toggle:checked::after {
+      transform: translateX(14px);
+    }
+
+    .footer-info {
+      font-size: 10px;
+      color: #777;
+    }
+
+    /* ── Seed notice ──────────────────────────── */
+    .seed-notice {
+      display: none;
+      padding: 6px 20px;
+      background: rgba(123, 104, 238, 0.06);
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+    }
+
+    .seed-notice.visible { display: block; }
+
+    /* ── Tabs ──────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0 16px;
+    }
+
+    .tab {
+      all: unset;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab:hover { color: #999; }
+
+    .tab.active {
+      color: #7b68ee;
+      border-bottom-color: #7b68ee;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Settings Section ─────────────────────── */
+    .settings-section {
+      padding: 16px 20px;
+    }
+
+    .settings-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .source-card {
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .source-card:hover {
+      background: rgba(123, 104, 238, 0.04);
+      border-color: rgba(123, 104, 238, 0.2);
+    }
+
+    .source-card.selected {
+      border-color: #7b68ee;
+      background: rgba(123, 104, 238, 0.08);
+    }
+
+    .source-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .source-radio {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #444;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+
+    .source-card.selected .source-radio { border-color: #7b68ee; }
+
+    .source-radio-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7b68ee;
+      transform: scale(0);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .source-card.selected .source-radio-dot { transform: scale(1); }
+
+    .source-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e0f0;
+    }
+
+    .source-card-desc {
+      font-size: 11px;
+      color: #777;
+      margin-left: 26px;
+      line-height: 1.5;
+    }
+
+    .twitter-status {
+      margin-left: 26px;
+      margin-top: 8px;
+    }
+
+    .twitter-connect-btn {
+      all: unset;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(29, 155, 240, 0.15);
+      border: 1px solid rgba(29, 155, 240, 0.3);
+      border-radius: 6px;
+      color: #1d9bf0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .twitter-connect-btn:hover {
+      background: rgba(29, 155, 240, 0.25);
+      border-color: rgba(29, 155, 240, 0.5);
+    }
+
+    .twitter-connected {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .twitter-handle {
+      color: #4ade80;
+      font-weight: 500;
+    }
+
+    .twitter-disconnect {
+      color: #666;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+
+    .twitter-disconnect:hover { color: #f87171; }
+
+    .twitter-connect-btn .twitter-icon { font-size: 13px; }
+
+    /* ── Archive Section ──────────────────────── */
+    .archive-section {
+      display: none;
+      padding: 8px 16px;
+    }
+
+    .archive-section.visible { display: block; }
+
+    .archive-locked {
+      text-align: center;
+      padding: 16px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .archive-locked-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+      opacity: 0.5;
+    }
+
+    /* ── Admin Section ────────────────────────── */
+    .admin-section {
+      padding: 20px;
+    }
+
+    .admin-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
+    .admin-btn {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(123, 104, 238, 0.08);
+      border: 1px solid rgba(123, 104, 238, 0.15);
+      border-radius: 8px;
+      color: #d0cfe0;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .admin-btn:hover {
+      background: rgba(123, 104, 238, 0.14);
+      border-color: rgba(123, 104, 238, 0.3);
+    }
+
+    .admin-btn:active { transform: scale(0.99); }
+
+    .admin-btn-icon { font-size: 14px; }
+
+    .admin-status {
+      font-size: 11px;
+      color: #555;
+      min-height: 16px;
+      margin-top: 4px;
+    }
+
+    .admin-status.ok { color: #4ade80; }
+    .admin-status.err { color: #f87171; }
+
+    /* ── Animations ────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .story {
+      animation: fadeInUp 0.3s ease forwards;
+    }
+
+    .story:nth-child(1) { animation-delay: 0.02s; }
+    .story:nth-child(2) { animation-delay: 0.06s; }
+    .story:nth-child(3) { animation-delay: 0.10s; }
+    .story:nth-child(4) { animation-delay: 0.14s; }
+    .story:nth-child(5) { animation-delay: 0.18s; }
+    .story:nth-child(6) { animation-delay: 0.22s; }
+    .story:nth-child(7) { animation-delay: 0.26s; }
+    .story:nth-child(8) { animation-delay: 0.30s; }
+    .story:nth-child(9) { animation-delay: 0.34s; }
+    .story:nth-child(10) { animation-delay: 0.38s; }
+
+    /* Pulse animation for Twitter connect button */
+    @keyframes pulse-highlight {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.4); }
+    }
+    .pulse { animation: pulse-highlight 0.6s ease; }
+  </style>
+</head>
+<body>
+  <!-- Onboarding (shown once) -->
+  <div class="onboarding hidden" id="onboarding">
+    <div class="onboarding-icon">&#9889;</div>
+    <div class="onboarding-title">Welcome to NewsFlash</div>
+    <div class="onboarding-desc">
+      High-signal tech news from Twitter/X, delivered passively.<br>
+      No scrolling. No noise. Just what matters.
+    </div>
+    <div class="onboarding-features">
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Top stories appear in a subtle bottom bar</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Sourced from 50+ curated tech insiders</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>AI-ranked by importance, not engagement</span>
+      </div>
+      <div class="onboarding-feature">
+        <span class="onboarding-feature-icon">&#10003;</span>
+        <span>Dismiss anytime with one click or Esc</span>
+      </div>
+    </div>
+    <button class="onboarding-btn" id="onboarding-btn">Get Started</button>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content" style="display:none;">
+    <div class="header">
+      <div class="brand-group">
+        <span class="brand-icon">&#9889;</span>
+        <span class="brand">NEWSFLASH</span>
+        <span class="tier-badge" id="tier-badge">FREE</span>
+      </div>
+      <div class="header-right">
+        <span class="date" id="date"></span>
+        <button class="refresh-btn" id="refresh-btn" title="Refresh stories" aria-label="Refresh stories">&#8635;</button>
+      </div>
+    </div>
+
+    <div class="seed-notice" id="seed-notice">
+      Sample stories shown &mdash; live stories update automatically
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+      <button class="tab" data-tab="archive" role="tab" aria-selected="false">Archive</button>
+      <button class="tab" data-tab="settings" role="tab" aria-selected="false" id="settings-tab">Settings</button>
+      <button class="tab" data-tab="admin" role="tab" aria-selected="false" id="admin-tab" style="display:none">Admin</button>
+    </div>
+
+    <!-- Today tab -->
+    <div class="tab-content active" id="tab-today" role="tabpanel">
+      <div class="stories" id="stories"></div>
+
+      <div class="upsell" id="upsell">
+        <div class="upsell-title">
+          <span>&#10024;</span> Upgrade to Pro
+        </div>
+        <div class="upsell-desc">
+          Get breaking alerts, 30-day archive, topic filters, and more stories daily.
+        </div>
+        <div class="upsell-price">$4.99/mo or $39/year</div>
+      </div>
+    </div>
+
+    <!-- Archive tab -->
+    <div class="tab-content" id="tab-archive" role="tabpanel">
+      <div class="archive-section visible">
+        <div class="archive-locked" id="archive-content">
+          <div class="archive-locked-icon">&#128274;</div>
+          <div>30-day archive is a Pro feature</div>
+          <div style="margin-top:8px; color:#7b68ee; cursor:pointer;" id="archive-upgrade">Upgrade to unlock &rarr;</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings tab -->
+    <div class="tab-content" id="tab-settings" role="tabpanel">
+      <div class="settings-section">
+        <div class="settings-title">Feed Source</div>
+
+        <div class="source-card selected" id="source-curated" data-source="curated">
+          <div class="source-card-header">
+            <div class="source-radio"><div class="source-radio-dot"></div></div>
+            <span class="source-card-name">NewsFlash Curated</span>
+          </div>
+          <div class="source-card-desc">Top stories from 50+ curated tech insiders</div>
+        </div>
+
+        <div class="source-card" id="source-personal" data-source="personal">
+          <div class="source-card-header">
+            <div class="source-radio"><div class="source-radio-dot"></div></div>
+            <span class="source-card-name">My Twitter Feed</span>
+          </div>
+          <div class="source-card-desc">Stories from your own timeline</div>
+          <div class="twitter-status" id="twitter-status">
+            <button class="twitter-connect-btn" id="twitter-connect-btn">
+              <span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span>
+              Connect Twitter
+            </button>
+            <div id="twitter-error" style="color: #f87171; font-size: 11px; margin-top: 6px; display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin tab -->
+    <div class="tab-content" id="tab-admin" role="tabpanel">
+      <div class="admin-section">
+        <div class="admin-title">Test Tools</div>
+        <button class="admin-btn" id="admin-test-flash">
+          <span class="admin-btn-icon">&#9889;</span>
+          Trigger Test Flash
+        </button>
+        <div class="admin-status" id="admin-flash-status"></div>
+
+        <button class="admin-btn" id="admin-reset-dismiss" style="margin-top: 8px;">
+          <span class="admin-btn-icon">&#8634;</span>
+          Reset Dismissal
+        </button>
+        <div class="admin-status" id="admin-reset-status"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="toggle-group">
+        <label for="toggle" class="toggle-label">Show news bar</label>
+        <input type="checkbox" class="toggle" id="toggle" checked>
+      </div>
+      <div class="footer-info" id="footer-info">5 stories/day</div>
+    </div>
+  </div>
+
+  <script>
+    const TAURI = window.__TAURI__;
+    const invoke = TAURI ? TAURI.core.invoke : null;
+
+    const storiesEl = document.getElementById('stories');
+    const dateEl = document.getElementById('date');
+    const toggleEl = document.getElementById('toggle');
+    const onboardingEl = document.getElementById('onboarding');
+    const onboardingBtn = document.getElementById('onboarding-btn');
+    const mainContent = document.getElementById('main-content');
+    const tierBadge = document.getElementById('tier-badge');
+    const upsellEl = document.getElementById('upsell');
+    const seedNotice = document.getElementById('seed-notice');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const footerInfo = document.getElementById('footer-info');
+    const archiveContent = document.getElementById('archive-content');
+    const archiveUpgrade = document.getElementById('archive-upgrade');
+    const sourceCurated = document.getElementById('source-curated');
+    const sourcePersonal = document.getElementById('source-personal');
+    const twitterConnectBtn = document.getElementById('twitter-connect-btn');
+    const twitterStatus = document.getElementById('twitter-status');
+
+    // Admin tab reveal: shift-click Settings tab 5 times
+    let settingsShiftClickCount = 0;
+    const settingsTab = document.getElementById('settings-tab');
+    const adminTab = document.getElementById('admin-tab');
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', (e) => {
+        // Track shift-clicks on Settings tab for admin reveal
+        if (tab === settingsTab && e.shiftKey) {
+          settingsShiftClickCount++;
+          if (settingsShiftClickCount >= 5 && adminTab) {
+            adminTab.style.display = '';
+            settingsShiftClickCount = 0;
+          }
+        } else if (tab === settingsTab) {
+          settingsShiftClickCount = 0;
+        }
+
+        document.querySelectorAll('.tab').forEach((t) => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    // Check onboarding state and load settings
+    if (invoke) {
+      invoke('get_settings').then((data) => {
+        if (!data.onboardingShown) {
+          onboardingEl.classList.remove('hidden');
+          mainContent.style.display = 'none';
+        } else {
+          onboardingEl.classList.add('hidden');
+          mainContent.style.display = 'block';
+        }
+
+        // Set toggle state
+        toggleEl.checked = data.barEnabled !== false;
+
+        // Set tier UI
+        updateTierUI(data.tier || 'free');
+
+        // Set feed source
+        const source = data.feedSource || 'curated';
+        selectSource(source, true);
+      });
+    }
+
+    // Onboarding complete
+    onboardingBtn.addEventListener('click', () => {
+      if (invoke) invoke('complete_onboarding');
+      onboardingEl.classList.add('hidden');
+      mainContent.style.display = 'block';
+      loadStories();
+    });
+
+    // Toggle bar visibility
+    toggleEl.addEventListener('change', () => {
+      if (!invoke) return;
+      invoke('set_setting', { key: 'barEnabled', value: toggleEl.checked });
+      if (toggleEl.checked) {
+        invoke('set_setting', { key: 'dismissedDate', value: null });
+        invoke('show_bar');
+      } else {
+        invoke('hide_bar');
+      }
+    });
+
+    // Refresh
+    refreshBtn.addEventListener('click', () => {
+      if (!invoke) return;
+      refreshBtn.classList.add('spinning');
+      invoke('refresh_stories').then((res) => {
+        setTimeout(() => {
+          refreshBtn.classList.remove('spinning');
+          loadStories();
+        }, 800);
+      }).catch(() => {
+        setTimeout(() => {
+          refreshBtn.classList.remove('spinning');
+          const origColor = refreshBtn.style.color;
+          refreshBtn.style.color = '#f87171';
+          setTimeout(() => { refreshBtn.style.color = origColor; }, 1000);
+        }, 800);
+      });
+    });
+
+    // Upsell click
+    upsellEl.addEventListener('click', () => {
+      if (!confirm('Demo mode: This will enable Pro features for free. Continue?')) return;
+      if (invoke) {
+        invoke('set_tier', { tier: 'pro' }).then(() => {
+          updateTierUI('pro');
+          loadStories();
+        });
+      }
+    });
+
+    // Archive upgrade link
+    if (archiveUpgrade) {
+      archiveUpgrade.addEventListener('click', () => {
+        if (invoke) {
+          invoke('set_tier', { tier: 'pro' }).then(() => {
+            updateTierUI('pro');
+          });
+        }
+      });
+    }
+
+    // ── Source Picker Logic ──
+    function selectSource(source, skipRefresh) {
+      if (source === 'curated') {
+        sourceCurated.classList.add('selected');
+        sourcePersonal.classList.remove('selected');
+      } else {
+        sourcePersonal.classList.add('selected');
+        sourceCurated.classList.remove('selected');
+      }
+      if (invoke) invoke('set_feed_source', { source });
+      if (!skipRefresh) {
+        if (invoke) {
+          invoke('refresh_stories').then(() => loadStories());
+        }
+      }
+    }
+
+    function updateTwitterUI(connected, handle) {
+      if (connected && handle) {
+        twitterStatus.innerHTML = `
+          <div class="twitter-connected">
+            <span class="twitter-handle">@${escapeHtml(handle)} Connected &#10003;</span>
+            <span class="twitter-disconnect" id="twitter-disconnect-link">Disconnect</span>
+          </div>
+        `;
+        const disconnectLink = document.getElementById('twitter-disconnect-link');
+        if (disconnectLink) {
+          disconnectLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (invoke) {
+              invoke('disconnect_twitter').then(() => {
+                updateTwitterUI(false, null);
+                selectSource('curated');
+              });
+            }
+          });
+        }
+      } else {
+        twitterStatus.innerHTML = `
+          <button class="twitter-connect-btn" id="twitter-connect-btn">
+            <span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span>
+            Connect Twitter
+          </button>
+          <div id="twitter-error" style="color: #f87171; font-size: 11px; margin-top: 6px; display: none;"></div>
+        `;
+        const btn = document.getElementById('twitter-connect-btn');
+        if (btn) {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const errEl = document.getElementById('twitter-error');
+            if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+            btn.textContent = 'Connecting...';
+            btn.disabled = true;
+            if (invoke) {
+              btn.textContent = 'Complete in browser...';
+              invoke('start_twitter_oauth').then((res) => {
+                if (res && res.ok && res.handle) {
+                  // OAuth completed — update UI
+                  updateTwitterUI(true, res.handle);
+                  selectSource('personal');
+                } else {
+                  btn.innerHTML = '<span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span> Connect Twitter';
+                  btn.disabled = false;
+                }
+              }).catch((err) => {
+                btn.innerHTML = '<span class="twitter-icon" style="font-weight:900; font-size:14px;">X</span> Connect Twitter';
+                btn.disabled = false;
+                const errEl2 = document.getElementById('twitter-error');
+                if (errEl2) {
+                  errEl2.textContent = err || 'Connection failed. Make sure the backend is running.';
+                  errEl2.style.display = 'block';
+                }
+              });
+            }
+          });
+        }
+      }
+    }
+
+    sourceCurated.addEventListener('click', () => selectSource('curated'));
+    sourcePersonal.addEventListener('click', () => {
+      if (invoke) {
+        invoke('get_twitter_state').then((data) => {
+          if (data.twitterConnected) {
+            selectSource('personal');
+          } else {
+            // Pulse the connect button to draw attention
+            const connectBtn = document.getElementById('twitter-connect-btn');
+            if (connectBtn) {
+              connectBtn.classList.remove('pulse');
+              void connectBtn.offsetWidth;
+              connectBtn.classList.add('pulse');
+              setTimeout(() => connectBtn.classList.remove('pulse'), 600);
+            }
+          }
+        });
+      }
+    });
+
+    // Load saved Twitter state
+    if (invoke) {
+      invoke('get_twitter_state').then((data) => {
+        updateTwitterUI(data.twitterConnected || false, data.twitterHandle || null);
+      });
+    }
+
+    function updateTierUI(tier) {
+      if (tier === 'pro') {
+        tierBadge.textContent = 'PRO';
+        tierBadge.classList.add('pro');
+        upsellEl.classList.add('hidden');
+        footerInfo.textContent = '10 stories/day';
+
+        // Unlock archive
+        if (archiveContent) {
+          archiveContent.innerHTML = `
+            <div style="text-align:center; padding:24px; color:#666; font-size:12px;">
+              <div style="font-size:20px; margin-bottom:8px; opacity:0.5;">&#128197;</div>
+              <div>Archive shows past 30 days of stories.</div>
+              <div style="margin-top:6px; color:#888;">Coming soon with full backend integration.</div>
+            </div>
+          `;
+        }
+      } else {
+        tierBadge.textContent = 'FREE';
+        tierBadge.classList.remove('pro');
+        upsellEl.classList.remove('hidden');
+        footerInfo.textContent = '5 stories/day';
+      }
+    }
+
+    // Set default date immediately
+    dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+    // Load stories
+    function loadStories() {
+      if (!invoke) return;
+      storiesEl.innerHTML = '<div style="padding: 24px; text-align: center; color: #555; font-size: 12px;">Loading stories...</div>';
+
+      invoke('get_stories').then((response) => {
+        // Show seed notice if using fallback data
+        if (response.is_seed_data) {
+          seedNotice.classList.add('visible');
+        } else {
+          seedNotice.classList.remove('visible');
+        }
+
+        // Format date
+        if (response.date) {
+          const d = new Date(response.date + 'T00:00:00');
+          if (!isNaN(d.getTime())) {
+            dateEl.textContent = d.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+          }
+        }
+
+        const stories = response.stories;
+        if (!stories || stories.length === 0) {
+          storiesEl.innerHTML = `
+            <div class="empty">
+              <div class="empty-icon">&#9889;</div>
+              <div class="empty-title">No stories yet today</div>
+              <div class="empty-desc">Headlines will appear when the next digest runs.</div>
+            </div>
+          `;
+          return;
+        }
+
+        storiesEl.innerHTML = '';
+
+        stories.forEach((story, index) => {
+          const div = document.createElement('div');
+          div.className = 'story';
+          div.style.opacity = '0';
+          div.setAttribute('tabindex', '0');
+          div.setAttribute('role', 'button');
+          div.setAttribute('aria-expanded', 'false');
+
+          const sourcesHtml = story.sources
+            ? story.sources
+                .map((s) => `<span class="source-tag">@${escapeHtml(s.handle)}</span>`)
+                .join('')
+            : '';
+
+          div.innerHTML = `
+            <div class="story-header">
+              <span class="story-rank">${story.rank}</span>
+              <span class="story-headline">${escapeHtml(story.headline)}</span>
+            </div>
+            <span class="story-expand-indicator">&#9660;</span>
+            <div class="story-body">
+              <div class="story-detail">${escapeHtml(story.detail || '')}</div>
+              <div class="story-sources">${sourcesHtml}</div>
+            </div>
+          `;
+
+          function toggleStory() {
+            div.classList.toggle('open');
+            div.setAttribute('aria-expanded', div.classList.contains('open') ? 'true' : 'false');
+          }
+
+          div.addEventListener('click', toggleStory);
+          div.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleStory();
+            }
+          });
+
+          storiesEl.appendChild(div);
+
+          if (index < stories.length - 1) {
+            const divider = document.createElement('div');
+            divider.className = 'story-divider';
+            storiesEl.appendChild(divider);
+          }
+        });
+      }).catch(() => {
+        storiesEl.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">&#128225;</div>
+            <div class="empty-title">Could not load stories</div>
+            <div class="empty-desc">Check your connection and try refreshing.</div>
+          </div>
+        `;
+      });
+    }
+
+    // ── Admin: Trigger Test Flash ──
+    const testFlashBtn = document.getElementById('admin-test-flash');
+    const flashStatus = document.getElementById('admin-flash-status');
+
+    testFlashBtn.addEventListener('click', () => {
+      if (!invoke) return;
+      flashStatus.textContent = 'Injecting test stories...';
+      flashStatus.className = 'admin-status';
+
+      invoke('trigger_test_flash').then((count) => {
+        flashStatus.textContent = `Done — ${count} stories injected. Bar refreshed.`;
+        flashStatus.className = 'admin-status ok';
+        loadStories();
+      }).catch((err) => {
+        flashStatus.textContent = 'Error: ' + err;
+        flashStatus.className = 'admin-status err';
+      });
+    });
+
+    // ── Admin: Reset Dismissal ──
+    const resetDismissBtn = document.getElementById('admin-reset-dismiss');
+    const resetStatus = document.getElementById('admin-reset-status');
+
+    resetDismissBtn.addEventListener('click', () => {
+      if (!invoke) return;
+      invoke('reset_dismissal').then(() => {
+        resetStatus.textContent = 'Dismissal cleared. Bar will reappear.';
+        resetStatus.className = 'admin-status ok';
+        invoke('show_bar');
+      });
+    });
+
+    loadStories();
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

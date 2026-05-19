@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicholastay/tauri-v2-schemas/refs/heads/main/tauri.conf.schema.json",
+  "productName": "NewsFlash",
+  "version": "0.1.0",
+  "identifier": "com.newsflash.app",
+  "build": {
+    "frontendDist": "../ui",
+    "devUrl": "http://localhost:1420"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "bar",
+        "title": "",
+        "url": "bar/index.html",
+        "width": 62,
+        "height": 62,
+        "x": null,
+        "y": null,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": true,
+        "shadow": false
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "tooltip": "NewsFlash"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.icns"
+    ]
+  },
+  "plugins": {}
+}
