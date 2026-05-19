@@ -3,8 +3,20 @@ import { config } from '../config';
 
 let genAI: GoogleGenerativeAI | null = null;
 
+/**
+ * Returns true if a real Gemini API key is configured.
+ * Placeholder values and empty strings are treated as unconfigured.
+ */
+export function isLlmAvailable(): boolean {
+  const key = config.geminiApiKey;
+  return !!key && !key.startsWith('placeholder') && key.length > 10;
+}
+
 function getGenAI(): GoogleGenerativeAI {
   if (!genAI) {
+    if (!isLlmAvailable()) {
+      throw new Error('Gemini API key is not configured. Set GEMINI_API_KEY in .env');
+    }
     genAI = new GoogleGenerativeAI(config.geminiApiKey);
   }
   return genAI;

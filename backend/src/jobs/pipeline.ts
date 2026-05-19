@@ -5,6 +5,7 @@ import { scoreTweets } from './score';
 import { clusterTweets } from './cluster';
 import { summarizeClusters } from './summarize';
 import { getUnfilteredTweetsByDate, deleteOldData } from '../db/queries';
+import { isLlmAvailable } from '../utils/llm-client';
 
 export async function runPipeline(): Promise<void> {
   const today = new Date().toISOString().split('T')[0];
@@ -30,6 +31,16 @@ export async function runPipeline(): Promise<void> {
 
   if (passed === 0) {
     console.log('[Pipeline] No tweets passed filtering. Aborting.');
+    return;
+  }
+
+  // Check if LLM is available for steps 3-5
+  if (!isLlmAvailable()) {
+    console.warn('[Pipeline] Gemini API key not configured. Skipping score/cluster/summarize steps.');
+    console.warn('[Pipeline] Seed data will be served as fallback. Set GEMINI_API_KEY in .env for full pipeline.');
+    // Cleanup old data even without LLM
+    deleteOldData(7);
+    console.log('[Pipeline] Partial run complete (ingest + filter only).');
     return;
   }
 
